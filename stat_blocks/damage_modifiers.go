@@ -1,6 +1,6 @@
 package stat_blocks
 
-import "github.com/TimTwigg/EncounterManagerBackend/damage"
+import "github.com/TimTwigg/EncounterManagerBackend/types/damage"
 
 type DamageModifiers struct {
 	Vulnerabilities []damage.DamageType
