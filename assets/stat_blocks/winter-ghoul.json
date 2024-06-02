@@ -43,7 +43,10 @@
             "ToHitModifier": 2,
             "Reach": 5,
             "Target": "one creature",
-            "Damage": "2d6 + 2",
+            "Damage": [{
+                "Amount": "2d6 + 2",
+                "Type": "Piercing"
+            }],
             "DamageType": "Piercing",
             "AdditionalDescription": ""
         },
@@ -53,7 +56,7 @@
             "ToHitModifier": 4,
             "Reach": 5,
             "Target": "one creature",
-            "Damage": "2d4 + 2",
+            "DamageAmount": "2d4 + 2",
             "DamageType": "Slashing",
             "AdditionalDescription": "If the target is a creature other than an undead, it must succeed on a DC 10 Constitution saving throw. On a failed save, a target begins to freeze and is restrained. The restrained target must repeat the saving throw at the end of each of its turns. On a success, the effect ends on the target. On a failure, the target is stunned.\n\tIf the target fails this saving throw again, they are frozen and petrified. The target remains petrified for 24 hours, after which they thaw, or until freed by the greater restoration spell or other magic."
         }
