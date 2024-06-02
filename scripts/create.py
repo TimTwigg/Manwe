@@ -1,7 +1,4 @@
-import sqlite3
 
-con = sqlite3.connect("database/database.sqlite3")
-cur = con.cursor()
 
 languages = [
     "Common",
@@ -36,10 +33,10 @@ languages = [
     "Gith"
 ]
 
-tuple_langs = [(lang,"") for lang in languages]
-
-cur.executemany("INSERT INTO Languages (Language, Description) VALUES (?, ?)", tuple_langs)
-con.commit()
+for language in languages:
+    cleaned_language = ''.join(e for e in language if e.isalnum() or e in ' ').replace(' ', '_')
+    with open(f'C:/Users/egan/Desktop/EncounterManagerBackend/assets/languages/{cleaned_language.lower()}.json', 'w') as file:
+        file.write(f"{{\"language\": \"{language}\", \"Description\": \"\"}}")
 
 
 
