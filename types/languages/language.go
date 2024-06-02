@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/TimTwigg/EncounterManagerBackend/utils"
+	data_type_utils "github.com/TimTwigg/EncounterManagerBackend/utils/data_types"
 )
 
 type Language struct {
@@ -13,7 +14,7 @@ type Language struct {
 	Description string
 }
 
-var DEFAULT_LANGUAGES = utils.LockableMap[string, Language]{}
+var DEFAULT_LANGUAGES = data_type_utils.LockableMap[string, Language]{}
 
 func initializeLanguage(file_contents string) error {
 	language := Language{}
@@ -26,14 +27,13 @@ func initializeLanguage(file_contents string) error {
 }
 
 func InitializeDefaultLanguages() error {
-	err := utils.ApplyToAll("assets/languages", initializeLanguage)
+	err := utils.ApplyToAllFiles("assets/languages", initializeLanguage)
 	if err != nil {
 		fmt.Println("Error initializing languages!")
 		log.Fatal(err)
 	}
 	DEFAULT_LANGUAGES.Lock()
 	fmt.Println("Languages initialized!")
-	fmt.Println(DEFAULT_LANGUAGES.ToString())
 
 	return nil
 }

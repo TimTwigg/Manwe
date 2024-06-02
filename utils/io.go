@@ -22,7 +22,7 @@ func ReadJSON(address string, target any) error {
 }
 
 func ListDir(address string) ([]string, error) {
-	files, err := os.ReadDir("assets/languages")
+	files, err := os.ReadDir(address)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,9 @@ func ListDir(address string) ([]string, error) {
 	return file_names, nil
 }
 
-func ApplyToAll(address string, function func(string) error) error {
+// ApplyToAllFiles applies a function [function] to the contents of all files in a given directory [address].
+// The function takes the contents of the file (string) as an argument and returns any errors.
+func ApplyToAllFiles(address string, function func(string) error) error {
 	files, err := ListDir(address)
 	if err != nil {
 		return err
