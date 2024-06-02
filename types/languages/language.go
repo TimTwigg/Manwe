@@ -1,7 +1,9 @@
-package damage
+package language
 
 import (
-	"database/sql"
+	"encoding/json"
+	"fmt"
+	"log"
 
 	"github.com/TimTwigg/EncounterManagerBackend/utils"
 )
@@ -11,18 +13,27 @@ type Language struct {
 	Description string
 }
 
-var LANGUAGES = map[string]Language{}
+var DEFAULT_LANGUAGES = utils.LockableMap[string, Language]{}
 
-func InitializeLanguages() {
-	db := utils.Must(sql.Open("sqlite3", "./database/database.sqlite3"))
-	rows := utils.Must(db.Query("SELECT * FROM languages"))
-	defer rows.Close()
-	for rows.Next() {
-		var language Language
-		err := rows.Scan(&language.Language, &language.Description)
-		if err != nil {
-			panic(err)
-		}
-		LANGUAGES[language.Language] = language
+func initializeLanguage(file_contents string) error {
+	language := Language{}
+	err := json.Unmarshal([]byte(file_contents), &language)
+	if err != nil {
+		return err
 	}
+	DEFAULT_LANGUAGES.Set(language.Language, language)
+	return nil
+}
+
+func InitializeDefaultLanguages() error {
+	err := utils.ApplyToAll("assets/languages", initializeLanguage)
+	if err != nil {
+		fmt.Println("Error initializing languages!")
+		log.Fatal(err)
+	}
+	DEFAULT_LANGUAGES.Lock()
+	fmt.Println("Languages initialized!")
+	fmt.Println(DEFAULT_LANGUAGES.ToString())
+
+	return nil
 }

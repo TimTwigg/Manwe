@@ -1,5 +1,7 @@
 package main
 
+import language "github.com/TimTwigg/EncounterManagerBackend/types/languages"
+
 func main() {
-	println("Hello, World!")
+	language.InitializeDefaultLanguages()
 }
