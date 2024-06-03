@@ -30,7 +30,7 @@ func ReadDataTypeFromFile(address string) (Parseable, error) {
 }
 
 func ParseAllFilesInFolder(address string, parser func(a map[string]any) (Parseable, error)) ([]Parseable, error) {
-	defaultFiles, err := io_utils.ListDir("assets/damage_types")
+	defaultFiles, err := io_utils.ListDir(address)
 	if err != nil {
 		return nil, err
 	}

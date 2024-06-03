@@ -1,15 +1,17 @@
 package main
 
 import (
-	"github.com/TimTwigg/EncounterManagerBackend/types/damage"
+	damage_types "github.com/TimTwigg/EncounterManagerBackend/types/damage"
 	language "github.com/TimTwigg/EncounterManagerBackend/types/languages"
+
+	log "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
-func initialize() {
-	language.InitializeDefaultLanguages()
-	damage.InitializeDefaultDamageTypes()
+func init() {
+	log.Init("Fully initialized!")
 }
 
 func main() {
-	initialize()
+	log.Info(language.DEFAULT_LANGUAGES.Get("Common"))
+	log.Info(damage_types.DEFAULT_DAMAGE_TYPES.Get("Fire"))
 }

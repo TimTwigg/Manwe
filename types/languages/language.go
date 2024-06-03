@@ -7,10 +7,10 @@ import (
 
 	data_type_utils "github.com/TimTwigg/EncounterManagerBackend/utils/data_types"
 	errors "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
+	log "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
-var DEFAULT_LANGUAGES = data_type_utils.LockableMap[string, Language]{}
-
+// Register the parser with the parser map.
 func init() {
 	parse.PARSERS.Set("Language", ParseLanguage)
 }
@@ -20,6 +20,7 @@ type Language struct {
 	Description string
 }
 
+// Turn a language into a dictionary
 func (language Language) Dict() map[string]any {
 	return map[string]any{
 		"data_type":   "Language",
@@ -28,10 +29,11 @@ func (language Language) Dict() map[string]any {
 	}
 }
 
+// Parse a language from a dictionary.
 func ParseLanguage(dict map[string]any) (parse.Parseable, error) {
 	missingKey := errors.ValidateKeyExistance(dict, []string{"language", "description"})
 	if missingKey != nil {
-		return Language{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from Language dictionary!", *missingKey)}
+		return Language{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from Language dictionary! (%v)", *missingKey, dict)}
 	}
 
 	return Language{
@@ -40,17 +42,20 @@ func ParseLanguage(dict map[string]any) (parse.Parseable, error) {
 	}, nil
 }
 
-func InitializeDefaultLanguages() error {
+var DEFAULT_LANGUAGES = data_type_utils.LockableMap[string, Language]{}
+
+func init() {
+	// Register the parser with the parser map.
+	parse.PARSERS.Set("Language", ParseLanguage)
+
+	// Build dictionary of default languages from files in the assets/languages folder.
 	languages, err := parse.ParseAllFilesInFolder("assets/languages", ParseLanguage)
 	if err != nil {
-		return err
+		log.Error("Failure while initializing 'language' objects")
+		panic(err)
 	}
 	for _, language := range languages {
 		DEFAULT_LANGUAGES.Set(language.(Language).Language, language.(Language))
 	}
-	return nil
-}
-
-func init() {
-	parse.PARSERS.Set("Language", ParseLanguage)
+	log.Init("Languages initialized!")
 }

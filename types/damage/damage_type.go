@@ -7,9 +7,8 @@ import (
 
 	data_type_utils "github.com/TimTwigg/EncounterManagerBackend/utils/data_types"
 	errors "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
+	log "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
-
-var DEFAULT_DAMAGE_TYPES = data_type_utils.LockableMap[string, DamageType]{}
 
 type DamageType struct {
 	DamageType  string
@@ -36,18 +35,19 @@ func ParseDamageType(dict map[string]any) (parse.Parseable, error) {
 	}, nil
 }
 
-func InitializeDefaultDamageTypes() error {
+var DEFAULT_DAMAGE_TYPES = data_type_utils.LockableMap[string, DamageType]{}
+
+func init() {
+	// Register the parser with the parser map.
+	parse.PARSERS.Set("DamageType", ParseDamageType)
+
+	// Build dictionary of default damage types from files in the assets/damage_types folder.
 	damageTypes, err := parse.ParseAllFilesInFolder("assets/damage_types", ParseDamageType)
 	if err != nil {
-		return err
+		panic(fmt.Errorf("error initializing 'damage_type' objects: %s", err))
 	}
 	for _, damageType := range damageTypes {
 		DEFAULT_DAMAGE_TYPES.Set(damageType.(DamageType).DamageType, damageType.(DamageType))
 	}
-	return nil
-}
-
-// Register the parser with the parser map.
-func init() {
-	parse.PARSERS.Set("DamageType", ParseDamageType)
+	log.Init("Damage types initialized!")
 }
