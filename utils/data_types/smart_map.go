@@ -1,14 +1,10 @@
 package data_type_utils
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
-
-type KeyValuePair[K comparable, V any] struct {
-	Key   K
-	Value V
-}
 
 type SmartMap[K comparable, V any] struct {
 	values      map[K]V
@@ -17,7 +13,7 @@ type SmartMap[K comparable, V any] struct {
 	Constructor func(K) V
 }
 
-func (m *SmartMap[K, V]) Get(key K) (V, bool) {
+func (m *SmartMap[K, V]) Get(key K) V {
 	// Lock mutex to prevent multithreaded access to internal reference map.
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -30,13 +26,16 @@ func (m *SmartMap[K, V]) Get(key K) (V, bool) {
 	// Get value from internal reference map. If it doesn't exist and we have a constructor, use it to create the value.
 	value, ok := m.values[key]
 	if !ok && m.Constructor != nil {
+		if m.Constructor == nil {
+			panic(fmt.Sprintf("Key '%v' does not exist in lockable map, and no constructor exists!", key))
+		}
 		value = m.Constructor(key)
 		m.values[key] = value
 	}
 
 	// Update the last updated time and return the value.
 	m.LastUpdated = time.Now()
-	return value, ok
+	return value
 }
 
 func (m *SmartMap[K, V]) Set(key K, value V) {
@@ -106,4 +105,46 @@ func (m *SmartMap[K, V]) Delete(key K) {
 	// Update the last updated time and delete the key from the internal reference map.
 	m.LastUpdated = time.Now()
 	delete(m.values, key)
+}
+
+func (m *SmartMap[K, V]) Keys() []K {
+	// Early return if we've never bothered to initialize the internal reference map.
+	if m.values == nil {
+		return make([]K, 0)
+	}
+
+	// Lock mutex to prevent multithreaded access to internal reference map.
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Convert internal reference map to a slice of keys.
+	keys := make([]K, 0, len(m.values))
+	for k := range m.values {
+		keys = append(keys, k)
+	}
+
+	// Update the last updated time and return the slice of keys.
+	m.LastUpdated = time.Now()
+	return keys
+}
+
+func (m *SmartMap[K, V]) Values() []V {
+	// Early return if we've never bothered to initialize the internal reference map.
+	if m.values == nil {
+		return make([]V, 0)
+	}
+
+	// Lock mutex to prevent multithreaded access to internal reference map.
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Convert internal reference map to a slice of values.
+	values := make([]V, 0, len(m.values))
+	for _, v := range m.values {
+		values = append(values, v)
+	}
+
+	// Update the last updated time and return the slice of values.
+	m.LastUpdated = time.Now()
+	return values
 }

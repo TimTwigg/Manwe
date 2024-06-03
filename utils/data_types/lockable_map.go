@@ -99,3 +99,19 @@ func (m *LockableMap[K, V]) ToString() string {
 func (m *LockableMap[K, V]) Lock() {
 	m.locked = true
 }
+
+func (m *LockableMap[K, V]) Keys() []K {
+	keys := make([]K, 0, len(m.values))
+	for key := range m.values {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
+func (m *LockableMap[K, V]) Values() []V {
+	values := make([]V, 0, len(m.values))
+	for _, value := range m.values {
+		values = append(values, value)
+	}
+	return values
+}

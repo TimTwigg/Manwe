@@ -1,40 +1,53 @@
 package damage
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 
-	"github.com/TimTwigg/EncounterManagerBackend/utils"
+	parse "github.com/TimTwigg/EncounterManagerBackend/types"
+
 	data_type_utils "github.com/TimTwigg/EncounterManagerBackend/utils/data_types"
+	errors "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
 )
+
+var DEFAULT_DAMAGE_TYPES = data_type_utils.LockableMap[string, DamageType]{}
 
 type DamageType struct {
 	DamageType  string
 	Description string
 }
 
-var DEFAULT_DAMAGE_TYPES = data_type_utils.LockableMap[string, DamageType]{}
-
-func initializeDamageType(file_contents string) error {
-	damageType := DamageType{}
-	err := json.Unmarshal([]byte(file_contents), &damageType)
-	if err != nil {
-		return err
+func (d DamageType) Dict() map[string]any {
+	return map[string]any{
+		"data_type":   "DamageType",
+		"damage_type": d.DamageType,
+		"description": d.Description,
 	}
-	DEFAULT_DAMAGE_TYPES.Set(damageType.DamageType, damageType)
-	return nil
+}
+
+func ParseDamageType(dict map[string]any) (parse.Parseable, error) {
+	missingKey := errors.ValidateKeyExistance(dict, []string{"damage_type", "description"})
+	if missingKey != nil {
+		return DamageType{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from DamageType dictionary!", *missingKey)}
+	}
+
+	return DamageType{
+		DamageType:  dict["damage_type"].(string),
+		Description: dict["description"].(string),
+	}, nil
 }
 
 func InitializeDefaultDamageTypes() error {
-	err := utils.ApplyToAllFiles("assets/damage_types", initializeDamageType)
+	damageTypes, err := parse.ParseAllFilesInFolder("assets/damage_types", ParseDamageType)
 	if err != nil {
-		fmt.Println("Error initializing damage types!")
-		log.Fatal(err)
+		return err
 	}
-
-	DEFAULT_DAMAGE_TYPES.Lock()
-	fmt.Println("Damage types initialized!")
-
+	for _, damageType := range damageTypes {
+		DEFAULT_DAMAGE_TYPES.Set(damageType.(DamageType).DamageType, damageType.(DamageType))
+	}
 	return nil
+}
+
+// Register the parser with the parser map.
+func init() {
+	parse.PARSERS.Set("DamageType", ParseDamageType)
 }
