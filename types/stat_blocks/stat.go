@@ -5,7 +5,7 @@ type Stat struct {
 	Value string
 }
 
-type Ability struct {
+type Trait struct {
 	Name        string
 	Description string
 }

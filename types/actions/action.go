@@ -1,6 +1,13 @@
 package actions
 
-type ActionData struct {
+import (
+	"fmt"
+
+	parse "github.com/TimTwigg/EncounterManagerBackend/types"
+	errors "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
+)
+
+type Action struct {
 	Name          string
 	AttackType    string
 	ToHitModifier int
@@ -11,7 +18,7 @@ type ActionData struct {
 	Description   string
 }
 
-func (a ActionData) Dict() map[string]any {
+func (a Action) Dict() map[string]any {
 	return map[string]interface{}{
 		"data_type":     "Action",
 		"name":          a.Name,
@@ -25,8 +32,14 @@ func (a ActionData) Dict() map[string]any {
 	}
 }
 
-func ParseActionData(dict map[string]any) ActionData {
-	return ActionData{
+// Parse an Action from a dictionary.
+func ParseActionData(dict map[string]any) (parse.Parseable, error) {
+	missingKey := errors.ValidateKeyExistance(dict, []string{"name", "attack_type", "to_hit_mod", "reach", "target", "damage_amount", "damage_type", "description"})
+	if missingKey != nil {
+		return Action{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from Action dictionary! (%v)", *missingKey, dict)}
+	}
+
+	return Action{
 		Name:          dict["name"].(string),
 		AttackType:    dict["attack_type"].(string),
 		ToHitModifier: dict["to_hit_mod"].(int),
@@ -35,5 +48,10 @@ func ParseActionData(dict map[string]any) ActionData {
 		DamageAmount:  dict["damage_amount"].(string),
 		DamageType:    dict["damage_type"].(string),
 		Description:   dict["description"].(string),
-	}
+	}, nil
+}
+
+func init() {
+	// register the parser with the parser map.
+	parse.PARSERS.Set("Action", ParseActionData)
 }

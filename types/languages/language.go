@@ -10,11 +10,6 @@ import (
 	log "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
-// Register the parser with the parser map.
-func init() {
-	parse.PARSERS.Set("Language", ParseLanguage)
-}
-
 type Language struct {
 	Language    string
 	Description string
