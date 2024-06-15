@@ -18,20 +18,20 @@ type DamageType struct {
 func (d DamageType) Dict() map[string]any {
 	return map[string]any{
 		"data_type":   "DamageType",
-		"damage_type": d.DamageType,
-		"description": d.Description,
+		"DamageType":  d.DamageType,
+		"Description": d.Description,
 	}
 }
 
 func ParseDamageType(dict map[string]any) (parse.Parseable, error) {
-	missingKey := errors.ValidateKeyExistance(dict, []string{"damage_type", "description"})
+	missingKey := errors.ValidateKeyExistance(dict, []string{"DamageType", "Description"})
 	if missingKey != nil {
 		return DamageType{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from DamageType dictionary!", *missingKey)}
 	}
 
 	return DamageType{
-		DamageType:  dict["damage_type"].(string),
-		Description: dict["description"].(string),
+		DamageType:  dict["DamageType"].(string),
+		Description: dict["Description"].(string),
 	}, nil
 }
 

@@ -1,1 +1,4 @@
-{"damage_type": "Acid", "description": ""}
+{
+    "DamageType": "Acid",
+    "Description": ""
+}

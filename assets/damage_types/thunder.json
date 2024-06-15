@@ -1,1 +1,4 @@
-{"damage_type": "Thunder", "description": ""}
+{
+    "DamageType": "Thunder",
+    "Description": ""
+}

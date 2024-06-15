@@ -339,6 +339,34 @@
                                         "Type",
                                         "Note"
                                     ]
+                                },
+                                "SavingThrow": {
+                                    "type": "object",
+                                    "description": "A saving throw for the damage.",
+                                    "properties": {
+                                        "Ability": {
+                                            "type": "string",
+                                            "description": "The ability for the saving throw."
+                                        },
+                                        "DC": {
+                                            "type": "integer",
+                                            "exclusiveMinimum": 0,
+                                            "description": "The DC for the saving throw."
+                                        },
+                                        "HalfDamage": {
+                                            "type": "boolean",
+                                            "description": "Whether the target takes half damage on a successful save."
+                                        },
+                                        "Note": {
+                                            "type": "string",
+                                            "description": "A note about the saving throw."
+                                        }
+                                    },
+                                    "required": [
+                                        "Ability",
+                                        "DC",
+                                        "HalfDamage"
+                                    ]
                                 }
                             },
                             "required": [
@@ -503,28 +531,32 @@
                     "type": "string",
                     "description": "The description of the lair."
                 },
+                "Initiative": {
+                    "type": "integer",
+                    "description": "The initiative modifier of the lair."
+                },
                 "Actions": {
-                    "type": "array",
-                    "description": "The lair actions of the creature.",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "Name": {
-                                "type": "string",
-                                "description": "The name of the lair action."
-                            },
-                            "Description": {
-                                "type": "string",
-                                "description": "The description of the lair action."
-                            }
+                    "type": "object",
+                    "description": "The regional effects of the lair.",
+                    "properties": {
+                        "Description": {
+                            "type": "string",
+                            "description": "The description of the lair actions."
                         },
-                        "required": [
-                            "Name",
-                            "Description"
-                        ]
+                        "Actions": {
+                            "type": "array",
+                            "description": "The lair actions.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 1,
+                            "uniqueItems": true
+                        }
                     },
-                    "minItems": 1,
-                    "uniqueItems": true
+                    "required": [
+                        "Description",
+                        "Actions"
+                    ]
                 },
                 "RegionalEffects": {
                     "type": "object",
@@ -563,9 +595,6 @@
         "Stats",
         "DamageModifiers",
         "ConditionImmunities",
-        "Details",
-        "Actions",
-        "Reactions",
-        "BonusActions"
+        "Details"
     ]
 }

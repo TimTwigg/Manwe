@@ -1,1 +1,4 @@
-{"language": "Common", "description": "The language spoken by nearly all living creatures capable of speech."}
+{
+    "Language": "Common",
+    "Description": "The language spoken by nearly all living creatures capable of speech."
+}

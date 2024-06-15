@@ -99,7 +99,7 @@
                     "AlternativeDamage": {
                         "Amount": "1d10 + 8",
                         "Type": "Slashing",
-                        "Note": "when used with two hands"
+                        "Note": "when used with two hands."
                     }
                 },
                 {
@@ -137,7 +137,6 @@
             "Description": "When Aurelia is subjected to an effect that would move her, knock her prone, or both, she can use her reaction to be neither moved nor knocked prone."
         }
     ],
-    "BonusActions": [],
     "LegendaryActions": {
         "Points": 3,
         "Description": "Aurelia can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature's turn. Aurelia regains spent legendary actions at the start of her turn.",

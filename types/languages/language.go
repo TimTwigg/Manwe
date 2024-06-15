@@ -19,21 +19,21 @@ type Language struct {
 func (language Language) Dict() map[string]any {
 	return map[string]any{
 		"data_type":   "Language",
-		"language":    language.Language,
-		"description": language.Description,
+		"Language":    language.Language,
+		"Description": language.Description,
 	}
 }
 
 // Parse a language from a dictionary.
 func ParseLanguage(dict map[string]any) (parse.Parseable, error) {
-	missingKey := errors.ValidateKeyExistance(dict, []string{"language", "description"})
+	missingKey := errors.ValidateKeyExistance(dict, []string{"Language", "Description"})
 	if missingKey != nil {
 		return Language{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from Language dictionary! (%v)", *missingKey, dict)}
 	}
 
 	return Language{
-		Language:    dict["language"].(string),
-		Description: dict["description"].(string),
+		Language:    dict["Language"].(string),
+		Description: dict["Description"].(string),
 	}, nil
 }
 

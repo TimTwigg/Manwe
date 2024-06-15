@@ -1,3 +1,6 @@
+from pathlib import Path
+import json
+
 damages = [
     "Cold",
 	"Lightning",
@@ -47,10 +50,16 @@ languages = [
     "Gith",
 ]
 
-for damage in damages:
-    #cleaned_language = ''.join(e for e in language if e.isalnum() or e in ' ').replace(' ', '_')
-    with open(f'C:/Users/egan/Desktop/EncounterManagerBackend/assets/damage_types/{damage.lower()}.json', 'w') as file:
-        file.write(f"{{\"DamageType\": \"{damage}\", \"Description\": \"\"}}")
 
+############################################################################################################
+# CAUTION: This will overwrite the existing files                                                          #
+############################################################################################################
 
+# for damage in damages:
+#     with Path("./../assets/damage_types").joinpath(f"{damage.lower()}.json").open("w") as file:
+#         json.dump({"DamageType": damage, "Description": ""}, file, indent = 4)
+
+# for lang in languages:
+#     with Path("./../assets/languages").joinpath(f"{lang.lower().replace(" ", "_").replace("'", "")}.json").open("w") as file:
+#         json.dump({"Language": lang, "Description": ""}, file, indent = 4)
 

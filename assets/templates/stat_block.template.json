@@ -1,0 +1,146 @@
+{
+    "Name": "",
+    "ChallengeRating": 1,
+    "ProficiencyBonus": 2,
+    "Description": {
+        "Size": "",
+        "Type": "",
+        "Alignment": ""
+    },
+    "Stats": {
+        "ArmorClass": 1,
+        "HitPoints": 1,
+        "Speed": {
+            "Walk": 1,
+            "Fly": 1,
+            "Climb": 1,
+            "Swim": 1
+        },
+        "Strength": 1,
+        "Dexterity": 1,
+        "Constitution": 1,
+        "Intelligence": 1,
+        "Wisdom": 1,
+        "Charisma": 1
+    },
+    "DamageModifiers": {
+        "Resistances": [
+            ""
+        ],
+        "Immunities": [
+            ""
+        ],
+        "Vulnerabilities": [
+            ""
+        ]
+    },
+    "ConditionImmunities": [
+        ""
+    ],
+    "Details": {
+        "ArmorType": "",
+        "Skills": [
+            {
+                "Name": "",
+                "Modifier": 1
+            }
+        ],
+        "SavingThrows": [
+            ""
+        ],
+        "Senses": [
+            {
+                "Name": "Passive Perception",
+                "Value": 1
+            }
+        ],
+        "Languages": {
+            "Note": "",
+            "Languages": [
+                ""
+            ]
+        },
+        "Traits": [
+            {
+                "Name": "",
+                "Description": ""
+            }
+        ]
+    },
+    "Actions": [
+        {
+            "Name": "",
+            "AttackType": "",
+            "ToHitModifier": 1,
+            "Reach": 5,
+            "Targets": 1,
+            "Damage": [
+                {
+                    "Amount": "",
+                    "Type": "",
+                    "AlternativeDamage": {
+                        "Amount": "",
+                        "Type": "",
+                        "Note": ""
+                    },
+                    "SavingThrow": {
+                        "Ability": "",
+                        "DC": 1,
+                        "HalfDamage": true,
+                        "Note": ""
+                    }
+                }
+            ],
+            "AdditionalDescription": ""
+        }
+    ],
+    "Reactions": [
+        {
+            "Name": "",
+            "Description": ""
+        }
+    ],
+    "BonusActions": [
+        {
+            "Name": "",
+            "Description": ""
+        }
+    ],
+    "LegendaryActions": {
+        "Points": 1,
+        "Description": "",
+        "Actions": [
+            {
+                "Name": "",
+                "Cost": 1,
+                "Description": ""
+            }
+        ]
+    },
+    "MythicActions": {
+        "Description": "",
+        "Actions": [
+            {
+                "Name": "",
+                "Cost": 1,
+                "Description": ""
+            }
+        ]
+    },
+    "Lair": {
+        "Description": "",
+        "Initiative": 20,
+        "Actions": {
+            "Description": "",
+            "Actions": [
+                ""
+            ]
+        },
+        "RegionalEffects": {
+            "Description": "",
+            "Effects": [
+                ""
+            ]
+        }
+    }
+}
