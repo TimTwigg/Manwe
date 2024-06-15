@@ -15,21 +15,21 @@ type SimpleAction struct {
 func (a SimpleAction) Dict() map[string]any {
 	return map[string]interface{}{
 		"data_type":   "SimpleAction",
-		"name":        a.Name,
-		"description": a.Description,
+		"Name":        a.Name,
+		"Description": a.Description,
 	}
 }
 
 // Parse a Simple Action from a dictionary.
 func ParseSimpleActionData(dict map[string]any) (parse.Parseable, error) {
-	missingKey := errors.ValidateKeyExistance(dict, []string{"name", "description"})
+	missingKey := errors.ValidateKeyExistance(dict, []string{"Name", "Description"})
 	if missingKey != nil {
 		return SimpleAction{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from Simple Action dictionary! (%v)", *missingKey, dict)}
 	}
 
 	return SimpleAction{
-		Name:        dict["name"].(string),
-		Description: dict["description"].(string),
+		Name:        dict["Name"].(string),
+		Description: dict["Description"].(string),
 	}, nil
 }
 

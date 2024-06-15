@@ -197,7 +197,21 @@
                     "type": "array",
                     "description": "The saving throws of the creature.",
                     "items": {
-                        "type": "string"
+                        "type": "object",
+                        "properties": {
+                            "Name": {
+                                "type": "string",
+                                "description": "The Ability."
+                            },
+                            "Modifier": {
+                                "type": "integer",
+                                "description": "The modifier of the saving throw."
+                            }
+                        },
+                        "required": [
+                            "Name",
+                            "Modifier"
+                        ]
                     },
                     "uniqueItems": true
                 },

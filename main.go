@@ -1,6 +1,7 @@
 package main
 
 import (
+	condition "github.com/TimTwigg/EncounterManagerBackend/types/conditions"
 	damage_types "github.com/TimTwigg/EncounterManagerBackend/types/damage"
 	language "github.com/TimTwigg/EncounterManagerBackend/types/languages"
 
@@ -14,13 +15,17 @@ func init() {
 
 func Validate() {
 	assetPath := "./assets"
-	validate.ValidateStatBlocks(assetPath)
-	validate.ValidateLanguage(assetPath)
-	validate.ValidateDamageTypes(assetPath)
+	hideOutput := true
+	validate.ValidateStatBlocks(assetPath, hideOutput)
+	validate.ValidateLanguage(assetPath, hideOutput)
+	validate.ValidateDamageTypes(assetPath, hideOutput)
+	validate.ValidateConditions(assetPath, hideOutput)
+	log.Info("Validation complete!")
 }
 
 func main() {
+	Validate()
 	log.Info(language.DEFAULT_LANGUAGES.Get("Common"))
 	log.Info(damage_types.DEFAULT_DAMAGE_TYPES.Get("Fire"))
-	Validate()
+	log.Info(condition.DEFAULT_CONDITIONS.Get("Blinded"))
 }

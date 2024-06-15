@@ -1,9 +1,10 @@
 package stat_blocks
 
 type DetailBlock struct {
-	ArmorType string
-	Skills    []Stat
-	Senses    []Stat
-	Languages []string
-	Traits    []Trait
+	ArmorType    string
+	Skills       []Stat
+	SavingThrows []Stat
+	Senses       []Sense
+	Languages    []string
+	Traits       []Trait
 }

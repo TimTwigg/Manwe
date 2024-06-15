@@ -1,4 +1,5 @@
 # Validate the schemas in the catalog
+# replaced by Go validator
 
 from jsonschema import validate, ValidationError
 from pathlib import Path

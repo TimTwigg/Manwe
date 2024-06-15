@@ -13,26 +13,53 @@ type LegendaryAction struct {
 	Cost        int
 }
 
+type Legendary struct {
+	Points      int
+	Description string
+	Actions     []LegendaryAction
+}
+
 func (a LegendaryAction) Dict() map[string]any {
 	return map[string]interface{}{
 		"data_type":   "LegendaryAction",
-		"name":        a.Name,
-		"description": a.Description,
-		"cost":        a.Cost,
+		"Name":        a.Name,
+		"Description": a.Description,
+		"Cost":        a.Cost,
+	}
+}
+
+func (l Legendary) Dict() map[string]any {
+	actions := make([]map[string]any, len(l.Actions))
+	for i, action := range l.Actions {
+		actions[i] = action.Dict()
+	}
+
+	return map[string]any{
+		"Points":      l.Points,
+		"Description": l.Description,
+		"Actions":     actions,
 	}
 }
 
 // Parse a Legendary Action from a dictionary.
 func ParseLegendaryActionData(dict map[string]any) (parse.Parseable, error) {
-	missingKey := errors.ValidateKeyExistance(dict, []string{"name", "description", "cost"})
+	missingKey := errors.ValidateKeyExistance(dict, []string{"Points", "Description", "Actions"})
 	if missingKey != nil {
-		return LegendaryAction{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from Legendary Action dictionary! (%v)", *missingKey, dict)}
+		return Legendary{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from Legendary dictionary! (%v)", *missingKey, dict)}
 	}
 
-	return LegendaryAction{
-		Name:        dict["name"].(string),
-		Description: dict["description"].(string),
-		Cost:        dict["cost"].(int),
+	actions := dict["Actions"].([]map[string]any)
+	for _, action := range actions {
+		missingKey := errors.ValidateKeyExistance(action, []string{"Name", "Description", "Cost"})
+		if missingKey != nil {
+			return Legendary{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from LegendaryAction dictionary! (%v)", *missingKey, action)}
+		}
+	}
+
+	return Legendary{
+		Points:      dict["Points"].(int),
+		Description: dict["Description"].(string),
+		Actions:     dict["Actions"].([]LegendaryAction),
 	}, nil
 }
 

@@ -9,7 +9,7 @@ import (
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v6"
 )
 
-func ValidateGroup(asset_path string, group string, schemaFileName string, templateFileName string) {
+func ValidateGroup(asset_path string, group string, schemaFileName string, templateFileName string, hideOutput bool) {
 	schemaFile := asset_path + "/schemas/" + schemaFileName
 	files, err := io.ListDir(asset_path + "/" + group)
 	if err != nil {
@@ -32,7 +32,7 @@ func ValidateGroup(asset_path string, group string, schemaFileName string, templ
 	invalid := schema.Validate(template)
 	if invalid != nil {
 		log.Error(fmt.Sprintf("Error validating template %s: %s", filename, invalid.Error()))
-	} else {
+	} else if !hideOutput {
 		log.Info(fmt.Sprintf("Validated template %s", filename))
 	}
 
@@ -47,20 +47,24 @@ func ValidateGroup(asset_path string, group string, schemaFileName string, templ
 		invalid := schema.Validate(instance)
 		if invalid != nil {
 			log.Error(fmt.Sprintf("Error validating %s %s: %s", group, filename, invalid.Error()))
-		} else {
+		} else if !hideOutput {
 			log.Info(fmt.Sprintf("Validated %s %s", group, filename))
 		}
 	}
 }
 
-func ValidateStatBlocks(asset_path string) {
-	ValidateGroup(asset_path, "stat_blocks", "stat_block.schema.json", "stat_block.template.json")
+func ValidateStatBlocks(asset_path string, hideOutput bool) {
+	ValidateGroup(asset_path, "stat_blocks", "stat_block.schema.json", "stat_block.template.json", hideOutput)
 }
 
-func ValidateLanguage(asset_path string) {
-	ValidateGroup(asset_path, "languages", "language.schema.json", "language.template.json")
+func ValidateLanguage(asset_path string, hideOutput bool) {
+	ValidateGroup(asset_path, "languages", "language.schema.json", "language.template.json", hideOutput)
 }
 
-func ValidateDamageTypes(asset_path string) {
-	ValidateGroup(asset_path, "damage_types", "damage_type.schema.json", "damage_type.template.json")
+func ValidateDamageTypes(asset_path string, hideOutput bool) {
+	ValidateGroup(asset_path, "damage_types", "damage_type.schema.json", "damage_type.template.json", hideOutput)
+}
+
+func ValidateConditions(asset_path string, hideOutput bool) {
+	ValidateGroup(asset_path, "conditions", "condition.schema.json", "condition.template.json", hideOutput)
 }

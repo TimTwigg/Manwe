@@ -1,8 +1,13 @@
 package stat_blocks
 
 type Stat struct {
-	Stat  string
-	Value string
+	Name     string
+	Modifier int
+}
+
+type Sense struct {
+	Name  string
+	Value int
 }
 
 type Trait struct {

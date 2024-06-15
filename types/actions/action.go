@@ -7,47 +7,98 @@ import (
 	errors "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
 )
 
+type AltDamageT struct {
+	Amount string
+	Type   string
+	Note   string
+}
+
+type SavingThrowDamageT struct {
+	Ability    string
+	DC         int
+	HalfDamage bool
+	Note       string
+}
+
+type DamageT struct {
+	Amount            string
+	Type              string
+	AlternativeDamage AltDamageT
+	SavingThrow       SavingThrowDamageT
+}
+
 type Action struct {
-	Name          string
-	AttackType    string
-	ToHitModifier int
-	Reach         int
-	Target        string
-	DamageAmount  string
-	DamageType    string
-	Description   string
+	Name                  string
+	AttackType            string
+	ToHitModifier         int
+	Reach                 int
+	Targets               int
+	Damage                DamageT
+	AdditionalDescription string
+}
+
+func (a AltDamageT) Dict() map[string]any {
+	return map[string]interface{}{
+		"Amount": a.Amount,
+		"Type":   a.Type,
+		"Note":   a.Note,
+	}
+}
+
+func (s SavingThrowDamageT) Dict() map[string]any {
+	return map[string]interface{}{
+		"Ability":    s.Ability,
+		"DC":         s.DC,
+		"HalfDamage": s.HalfDamage,
+		"Note":       s.Note,
+	}
+}
+
+func (d DamageT) Dict() map[string]any {
+	return map[string]interface{}{
+		"Amount":            d.Amount,
+		"Type":              d.Type,
+		"AlternativeDamage": d.AlternativeDamage.Dict(),
+		"SavingThrow":       d.SavingThrow.Dict(),
+	}
 }
 
 func (a Action) Dict() map[string]any {
 	return map[string]interface{}{
-		"data_type":     "Action",
-		"name":          a.Name,
-		"attack_type":   a.AttackType,
-		"to_hit_mod":    a.ToHitModifier,
-		"reach":         a.Reach,
-		"target":        a.Target,
-		"damage_amount": a.DamageAmount,
-		"damage_type":   a.DamageType,
-		"description":   a.Description,
+		"data_type":             "Action",
+		"Name":                  a.Name,
+		"AttackType":            a.AttackType,
+		"ToHitModifier":         a.ToHitModifier,
+		"Reach":                 a.Reach,
+		"Targets":               a.Targets,
+		"Damage":                a.Damage.Dict(),
+		"AdditionalDescription": a.AdditionalDescription,
 	}
 }
 
 // Parse an Action from a dictionary.
 func ParseActionData(dict map[string]any) (parse.Parseable, error) {
-	missingKey := errors.ValidateKeyExistance(dict, []string{"name", "attack_type", "to_hit_mod", "reach", "target", "damage_amount", "damage_type", "description"})
+	missingKey := errors.ValidateKeyExistance(dict, []string{"name"})
 	if missingKey != nil {
 		return Action{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from Action dictionary! (%v)", *missingKey, dict)}
 	}
 
+	damages := dict["Damage"].([]map[string]any)
+	for _, damage := range damages {
+		missingKey = errors.ValidateKeyExistance(damage, []string{"Amount", "Type"})
+		if missingKey != nil {
+			return Action{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from Damage dictionary! (%v)", *missingKey, damage)}
+		}
+	}
+
 	return Action{
-		Name:          dict["name"].(string),
-		AttackType:    dict["attack_type"].(string),
-		ToHitModifier: dict["to_hit_mod"].(int),
-		Reach:         dict["reach"].(int),
-		Target:        dict["target"].(string),
-		DamageAmount:  dict["damage_amount"].(string),
-		DamageType:    dict["damage_type"].(string),
-		Description:   dict["description"].(string),
+		Name:                  dict["Name"].(string),
+		AttackType:            dict["AttackType"].(string),
+		ToHitModifier:         dict["ToHitModifier"].(int),
+		Reach:                 dict["Reach"].(int),
+		Targets:               dict["Targets"].(int),
+		Damage:                dict["Damage"].(DamageT),
+		AdditionalDescription: dict["AdditionalDescription"].(string),
 	}, nil
 }
 

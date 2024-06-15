@@ -46,7 +46,10 @@
             }
         ],
         "SavingThrows": [
-            ""
+            {
+                "Name": "",
+                "Modifier": 1
+            }
         ],
         "Senses": [
             {

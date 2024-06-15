@@ -1,0 +1,26 @@
+{
+    "schema": "https://json-schema.org/draft/2020-12/schema",
+    "id": "https://github.com/TimTwigg/EncounterManagerBackend/tree/main/assets/schemas/condition.schema.json",
+    "title": "Condition",
+    "description": "A condition",
+    "type": "object",
+    "properties": {
+        "Name": {
+            "type": "string",
+            "description": "The name of the condition"
+        },
+        "Effects": {
+            "type": "array",
+            "description": "The effects of the condition",
+            "items": {
+                "type": "string"
+            },
+            "uniqueItems": true,
+            "minItems": 1
+        }
+    },
+    "required": [
+        "Name",
+        "Effects"
+    ]
+}

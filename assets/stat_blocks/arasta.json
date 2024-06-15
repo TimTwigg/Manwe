@@ -63,9 +63,18 @@
             }
         ],
         "SavingThrows": [
-            "Dexterity",
-            "Constitution",
-            "Wisdom"
+            {
+                "Name": "Dexterity",
+                "Modifier": 10
+            },
+            {
+                "Name": "Constitution",
+                "Modifier": 13
+            },
+            {
+                "Name": "Wisdom",
+                "Modifier": 13
+            }
         ],
         "Senses": [
             {
