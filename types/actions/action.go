@@ -6,7 +6,7 @@ import (
 	parse "github.com/TimTwigg/EncounterManagerBackend/types"
 	errors "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
 	utils "github.com/TimTwigg/EncounterManagerBackend/utils/functions"
-	"github.com/TimTwigg/EncounterManagerBackend/utils/lists"
+	lists "github.com/TimTwigg/EncounterManagerBackend/utils/lists"
 )
 
 type AltDamageT struct {

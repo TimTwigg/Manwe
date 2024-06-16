@@ -5,7 +5,7 @@ import (
 
 	parse "github.com/TimTwigg/EncounterManagerBackend/types"
 	errors "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
-	"github.com/TimTwigg/EncounterManagerBackend/utils/lists"
+	lists "github.com/TimTwigg/EncounterManagerBackend/utils/lists"
 )
 
 type DamageModifiers struct {
