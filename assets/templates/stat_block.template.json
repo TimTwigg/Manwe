@@ -54,7 +54,7 @@
         "Senses": [
             {
                 "Name": "Passive Perception",
-                "Value": 1
+                "Modifier": 1
             }
         ],
         "Languages": {
@@ -135,13 +135,13 @@
         "Initiative": 20,
         "Actions": {
             "Description": "",
-            "Actions": [
+            "Items": [
                 ""
             ]
         },
         "RegionalEffects": {
             "Description": "",
-            "Effects": [
+            "Items": [
                 ""
             ]
         }

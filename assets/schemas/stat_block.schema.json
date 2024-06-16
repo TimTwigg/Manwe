@@ -225,14 +225,14 @@
                                 "type": "string",
                                 "description": "The name of the sense."
                             },
-                            "Value": {
+                            "Modifier": {
                                 "type": "integer",
                                 "description": "The range or value of the sense."
                             }
                         },
                         "required": [
                             "Name",
-                            "Value"
+                            "Modifier"
                         ]
                     },
                     "minItems": 1,
@@ -557,7 +557,7 @@
                             "type": "string",
                             "description": "The description of the lair actions."
                         },
-                        "Actions": {
+                        "Items": {
                             "type": "array",
                             "description": "The lair actions.",
                             "items": {
@@ -569,7 +569,7 @@
                     },
                     "required": [
                         "Description",
-                        "Actions"
+                        "Items"
                     ]
                 },
                 "RegionalEffects": {
@@ -580,7 +580,7 @@
                             "type": "string",
                             "description": "The description of the regional effects."
                         },
-                        "Effects": {
+                        "Items": {
                             "type": "array",
                             "description": "The regional effects of the lair.",
                             "items": {
@@ -592,7 +592,7 @@
                     },
                     "required": [
                         "Description",
-                        "Effects"
+                        "Items"
                     ]
                 }
             },

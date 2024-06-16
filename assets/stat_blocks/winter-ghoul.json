@@ -40,11 +40,11 @@
         "Senses": [
             {
                 "Name": "Darkvision",
-                "Value": 60
+                "Modifier": 60
             },
             {
                 "Name": "Passive Perception",
-                "Value": 10
+                "Modifier": 10
             }
         ],
         "Languages": {

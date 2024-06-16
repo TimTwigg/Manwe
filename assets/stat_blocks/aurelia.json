@@ -68,11 +68,11 @@
         "Senses": [
             {
                 "Name": "Truesight",
-                "Value": 120
+                "Modifier": 120
             },
             {
                 "Name": "Passive Perception",
-                "Value": 24
+                "Modifier": 24
             }
         ],
         "Languages": {
