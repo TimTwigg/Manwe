@@ -9,15 +9,21 @@ import (
 )
 
 type Speeds struct {
-	Walk  int
-	Fly   int
-	Swim  int
-	Climb int
+	Walk   int
+	Fly    int
+	Swim   int
+	Climb  int
+	Burrow int
+}
+
+type HitPointsT struct {
+	Average int
+	Dice    string
 }
 
 type NumericalAttributes struct {
 	ArmorClass   int
-	HitPoints    int
+	HitPoints    HitPointsT
 	Speed        Speeds
 	Strength     int
 	Dexterity    int
@@ -29,10 +35,18 @@ type NumericalAttributes struct {
 
 func (s Speeds) Dict() map[string]interface{} {
 	return map[string]interface{}{
-		"Walk":  s.Walk,
-		"Fly":   s.Fly,
-		"Swim":  s.Swim,
-		"Climb": s.Climb,
+		"Walk":   s.Walk,
+		"Fly":    s.Fly,
+		"Swim":   s.Swim,
+		"Climb":  s.Climb,
+		"Burrow": s.Burrow,
+	}
+}
+
+func (h HitPointsT) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"Average": h.Average,
+		"Dice":    h.Dice,
 	}
 }
 
@@ -57,10 +71,23 @@ func ParseSpeedsData(dict map[string]interface{}) (parse.Parseable, error) {
 	}
 
 	return Speeds{
-		Walk:  int(dict["Walk"].(float64)),
-		Fly:   utils.GetOptional(dict, "Fly", 0),
-		Swim:  utils.GetOptional(dict, "Swim", 0),
-		Climb: utils.GetOptional(dict, "Climb", 0),
+		Walk:   int(dict["Walk"].(float64)),
+		Fly:    utils.GetOptional(dict, "Fly", 0),
+		Swim:   utils.GetOptional(dict, "Swim", 0),
+		Climb:  utils.GetOptional(dict, "Climb", 0),
+		Burrow: utils.GetOptional(dict, "Burrow", 0),
+	}, nil
+}
+
+func ParseHitPointsData(dict map[string]interface{}) (parse.Parseable, error) {
+	missingKey := errors.ValidateKeyExistance(dict, []string{"Average", "Dice"})
+	if missingKey != nil {
+		return HitPointsT{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from HitPoints dictionary! (%v)", *missingKey, dict)}
+	}
+
+	return HitPointsT{
+		Average: int(dict["Average"].(float64)),
+		Dice:    dict["Dice"].(string),
 	}, nil
 }
 
@@ -71,6 +98,11 @@ func ParseNumericalAttributesData(dict map[string]interface{}) (parse.Parseable,
 		return NumericalAttributes{}, errors.ParseError{Message: fmt.Sprintf("Speed key missing from Numerical Attributes dictionary! (%v)", dict)}
 	}
 
+	hitPointsDict, err := ParseHitPointsData(dict["HitPoints"].(map[string]interface{}))
+	if err != nil {
+		return NumericalAttributes{}, errors.ParseError{Message: fmt.Sprintf("HitPoints key missing from Numerical Attributes dictionary! (%v)", dict)}
+	}
+
 	missingKey := errors.ValidateKeyExistance(dict, []string{"ArmorClass", "HitPoints", "Speed", "Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"})
 	if missingKey != nil {
 		return NumericalAttributes{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from Numerical Attributes dictionary! (%v)", *missingKey, dict)}
@@ -78,7 +110,7 @@ func ParseNumericalAttributesData(dict map[string]interface{}) (parse.Parseable,
 
 	return NumericalAttributes{
 		ArmorClass:   int(dict["ArmorClass"].(float64)),
-		HitPoints:    int(dict["HitPoints"].(float64)),
+		HitPoints:    hitPointsDict.(HitPointsT),
 		Speed:        speedDict.(Speeds),
 		Strength:     int(dict["Strength"].(float64)),
 		Dexterity:    int(dict["Dexterity"].(float64)),

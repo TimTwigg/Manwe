@@ -9,7 +9,10 @@
     },
     "Stats": {
         "ArmorClass": 1,
-        "HitPoints": 1,
+        "HitPoints": {
+            "Average": 1,
+            "Dice": "1d4"
+        },
         "Speed": {
             "Walk": 1,
             "Fly": 1,

@@ -50,9 +50,22 @@
                     "description": "The armor class of the creature."
                 },
                 "HitPoints": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "description": "The hit points of the creature."
+                    "type": "object",
+                    "properties": {
+                        "Average": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "description": "The average hit points of the creature."
+                        },
+                        "Dice": {
+                            "type": "string",
+                            "description": "The hit dice of the creature."
+                        }
+                    },
+                    "required": [
+                        "Average",
+                        "Dice"
+                    ]
                 },
                 "Speed": {
                     "type": "object",

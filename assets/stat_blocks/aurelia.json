@@ -9,7 +9,10 @@
     },
     "Stats": {
         "ArmorClass": 22,
-        "HitPoints": 287,
+        "HitPoints": {
+            "Average": 287,
+            "Dice": ""
+        },
         "Speed": {
             "Walk": 50,
             "Fly": 150
