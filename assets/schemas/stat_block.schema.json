@@ -95,6 +95,11 @@
                         "Walk"
                     ]
                 },
+                "ReactionCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "The number of reactions the creature can take per round."
+                },
                 "Strength": {
                     "type": "integer",
                     "minimum": 0,
@@ -130,6 +135,7 @@
                 "ArmorClass",
                 "HitPoints",
                 "Speed",
+                "ReactionCount",
                 "Strength",
                 "Dexterity",
                 "Constitution",
