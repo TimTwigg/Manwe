@@ -9,13 +9,45 @@ import (
 	lists "github.com/TimTwigg/EncounterManagerBackend/utils/lists"
 )
 
+type LanguageInfo struct {
+	Note      string
+	Languages []string
+}
+
+func (d LanguageInfo) Dict() map[string]any {
+	return map[string]any{
+		"Note":      d.Note,
+		"Languages": d.Languages,
+	}
+}
+
+func ParseLanguageInfo(dict map[string]any) (parse.Parseable, error) {
+	missingKey := errors.ValidateKeyExistance(dict, []string{"Languages"})
+	if missingKey != nil {
+		return LanguageInfo{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from LanguageInfo dictionary! (%v)", *missingKey, dict)}
+	}
+
+	// Unpack the Languages array from the dictionary
+	languages_raw := lists.UnpackArray(dict["Languages"])
+	Languages := make([]string, 0)
+	for _, language := range languages_raw {
+		Languages = append(Languages, language.(string))
+	}
+
+	return LanguageInfo{
+		Note:      dict["Note"].(string),
+		Languages: Languages,
+	}, nil
+}
+
 type DetailBlock struct {
 	ArmorType    string
 	Skills       []generics.NumericalItem
 	SavingThrows []generics.NumericalItem
 	Senses       []generics.NumericalItem
-	Languages    []string
+	Languages    LanguageInfo
 	Traits       []generics.SimpleItem
+	SpellSaveDC  int
 }
 
 func (d DetailBlock) Dict() map[string]any {
@@ -27,24 +59,6 @@ func (d DetailBlock) Dict() map[string]any {
 		"Languages":    d.Languages,
 		"Traits":       d.Traits,
 	}
-}
-
-func ParseLanguages(dict map[string]any) ([]string, error) {
-	missingKey := errors.ValidateKeyExistance(dict, []string{"Languages"})
-	if missingKey != nil {
-		return []string{}, errors.ParseError{Message: fmt.Sprintf("Key '%s' missing from Numerical Item dictionary! (%v)", *missingKey, dict)}
-	}
-
-	languages_raw := lists.UnpackArray(dict["Languages"])
-	Languages := make([]string, 0)
-	for _, language := range languages_raw {
-		Languages = append(Languages, language.(string))
-	}
-	if note, ok := dict["Note"]; ok {
-		Languages = append(Languages, note.(string))
-	}
-
-	return Languages, nil
 }
 
 // Parse a Detail Block from a dictionary.
@@ -84,7 +98,7 @@ func ParseDetailBlockData(dict map[string]any) (parse.Parseable, error) {
 		Senses = append(Senses, s.(generics.NumericalItem))
 	}
 
-	Languages, err := ParseLanguages(dict["Languages"].(map[string]any))
+	Languages, err := ParseLanguageInfo(dict["Languages"].(map[string]any))
 	if err != nil {
 		return DetailBlock{}, errors.ParseError{Message: fmt.Sprintf("Error parsing Languages: %s", err)}
 	}
@@ -104,7 +118,7 @@ func ParseDetailBlockData(dict map[string]any) (parse.Parseable, error) {
 		Skills:       Skills,
 		SavingThrows: SavingThrows,
 		Senses:       Senses,
-		Languages:    Languages,
+		Languages:    Languages.(LanguageInfo),
 		Traits:       Traits,
 	}, nil
 }

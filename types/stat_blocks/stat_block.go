@@ -16,6 +16,7 @@ type StatBlock struct {
 	Name                string
 	ChallengeRating     float32
 	ProficiencyBonus    int
+	Source              string
 	Description         EntityDescription
 	Stats               NumericalAttributes
 	DamageModifiers     DamageModifiers

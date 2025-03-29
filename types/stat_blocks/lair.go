@@ -10,6 +10,7 @@ import (
 )
 
 type Lair struct {
+	Name            string
 	Description     string
 	Initiative      int
 	Actions         generics.ItemList
