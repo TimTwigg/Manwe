@@ -1,20 +1,11 @@
 package main
 
 import (
-	// "encoding/json"
-	// "fmt"
-	// "io/ioutil"
-	"net/http"
-
-	// "strcconv"
-	// "sync"
-	"log"
-
-	// condition "github.com/TimTwigg/EncounterManagerBackend/types/conditions"
-	// damage_types "github.com/TimTwigg/EncounterManagerBackend/types/damage"
-	// language "github.com/TimTwigg/EncounterManagerBackend/types/languages"
-	// stat_blocks "github.com/TimTwigg/EncounterManagerBackend/types/stat_blocks"
+	// "net/http"
+	// "log"
+	read_asset_statblocks "github.com/TimTwigg/EncounterManagerBackend/read_assets/statblocks"
 	routes "github.com/TimTwigg/EncounterManagerBackend/server"
+	dbutils "github.com/TimTwigg/EncounterManagerBackend/utils/database"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 	validate "github.com/TimTwigg/EncounterManagerBackend/utils/validation"
 )
@@ -35,8 +26,20 @@ func Validate() {
 
 func main() {
 	routes.RegisterRoutes()
-	logger.Info("Server started on port 8080")
-	if err := http.ListenAndServe("localhost:8080", nil); err != nil {
-		log.Fatal(err)
+
+	logger.Info("Loading database...")
+	database, err := dbutils.GetDB()
+	if err != nil {
+		logger.Error("Error loading database: " + err.Error())
+		return
 	}
+	dbutils.DB = database
+	logger.Info("Database loaded.")
+
+	read_asset_statblocks.ReadStatBlockFromDB("Winter Ghoul")
+
+	// logger.Info("Server started on port 8080")
+	// if err := http.ListenAndServe("localhost:8080", nil); err != nil {
+	// 	log.Fatal(err)
+	// }
 }
