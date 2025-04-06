@@ -1,0 +1,4 @@
+CREATE TABLE "Condition" (
+	"Condition"	TEXT NOT NULL UNIQUE COLLATE NOCASE,
+	PRIMARY KEY("Condition")
+)

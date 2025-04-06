@@ -1,0 +1,4 @@
+CREATE TABLE "Size" (
+	"Size"	TEXT NOT NULL UNIQUE,
+	PRIMARY KEY("Size")
+);

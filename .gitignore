@@ -32,3 +32,6 @@ vendor/
 
 # Validation dump files
 dump*.txt
+
+# Database
+*.xlsx
