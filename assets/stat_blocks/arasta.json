@@ -2,6 +2,7 @@
     "Name": "Arasta",
     "ChallengeRating": 21,
     "ProficiencyBonus": 7,
+    "Source": "",
     "Description": {
         "Size": "Huge",
         "Type": "Monstrosity",
@@ -95,6 +96,7 @@
             }
         ],
         "Languages": {
+            "Note": "",
             "Languages": [
                 "Common",
                 "Celestial",

@@ -1,4 +1,4 @@
-package log
+package logger
 
 import "fmt"
 
@@ -7,9 +7,9 @@ var red = "\033[31m"
 var green = "\033[32m"
 var yellow = "\033[33m"
 var blue = "\033[34m"
+var cyan = "\033[36m"
+var magenta = "\033[35m"
 
-//var magenta = "\033[35m"
-//var cyan = "\033[36m"
 //var gray = "\033[37m"
 //var white = "\033[97m"
 
@@ -27,4 +27,12 @@ func Warn(message any) {
 
 func Error(message any) {
 	fmt.Printf("%s[ERROR]%s %v\n", red, reset, message)
+}
+
+func GetRequest(message any) {
+	fmt.Printf("%s[GET]%s %v\n", cyan, reset, message)
+}
+
+func PostRequest(message any) {
+	fmt.Printf("%s[POST]%s %v\n", magenta, reset, message)
 }

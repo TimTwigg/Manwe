@@ -2,6 +2,7 @@
     "Name": "Winter Ghoul",
     "ChallengeRating": 1,
     "ProficiencyBonus": 2,
+    "Source": "",
     "Description": {
         "Size": "Medium",
         "Type": "Undead",
@@ -52,6 +53,7 @@
             }
         ],
         "Languages": {
+            "Note": "",
             "Languages": [
                 "Common"
             ]
