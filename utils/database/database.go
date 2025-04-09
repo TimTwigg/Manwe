@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	io "github.com/TimTwigg/EncounterManagerBackend/utils/io"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 var DB *sql.DB
@@ -32,7 +32,7 @@ func GetDB() (*sql.DB, error) {
 		return nil, nil
 	}
 
-	db, err := sql.Open("sqlite3", "file:"+dbfile+"?cache=shared")
+	db, err := sql.Open("sqlite", "file:"+dbfile+"?cache=shared")
 	if err != nil {
 		return nil, err
 	}
