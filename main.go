@@ -36,7 +36,12 @@ func main() {
 	dbutils.DB = database
 	logger.Info("Database loaded.")
 
-	read_asset_statblocks.ReadStatBlockFromDB("Winter Ghoul")
+	block, err := read_asset_statblocks.ReadStatBlockFromDB("Winter Ghoul")
+	if err != nil {
+		logger.Error("Error reading stat block: " + err.Error())
+		return
+	}
+	logger.Info(block)
 
 	// logger.Info("Server started on port 8080")
 	// if err := http.ListenAndServe("localhost:8080", nil); err != nil {
