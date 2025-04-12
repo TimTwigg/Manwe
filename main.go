@@ -1,9 +1,9 @@
 package main
 
 import (
-	// "net/http"
-	// "log"
-	read_asset_statblocks "github.com/TimTwigg/EncounterManagerBackend/read_assets/statblocks"
+	"log"
+	"net/http"
+
 	routes "github.com/TimTwigg/EncounterManagerBackend/server"
 	dbutils "github.com/TimTwigg/EncounterManagerBackend/utils/database"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
@@ -36,15 +36,8 @@ func main() {
 	dbutils.DB = database
 	logger.Info("Database loaded.")
 
-	block, err := read_asset_statblocks.ReadStatBlockFromDB("Winter Ghoul")
-	if err != nil {
-		logger.Error("Error reading stat block: " + err.Error())
-		return
+	logger.Info("Server started on port 8080")
+	if err := http.ListenAndServe("localhost:8080", nil); err != nil {
+		log.Fatal(err)
 	}
-	logger.Info(block)
-
-	// logger.Info("Server started on port 8080")
-	// if err := http.ListenAndServe("localhost:8080", nil); err != nil {
-	// 	log.Fatal(err)
-	// }
 }

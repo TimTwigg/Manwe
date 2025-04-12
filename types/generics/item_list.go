@@ -10,7 +10,7 @@ import (
 
 type ItemList struct {
 	Description string
-	Items       []string
+	Items       []SimpleItem
 }
 
 func (i ItemList) Dict() map[string]interface{} {
@@ -29,9 +29,13 @@ func ParseItemListData(dict map[string]interface{}) (parse.Parseable, error) {
 	}
 
 	items_raw := lists.UnpackArray(dict["Items"])
-	items := make([]string, len(items_raw))
-	for i, item := range items_raw {
-		items[i] = item.(string)
+	items := make([]SimpleItem, len(items_raw))
+	for _, item := range items_raw {
+		s, err := parse.PARSERS.Get("SimpleItem")(item.(map[string]any))
+		if err != nil {
+			return ItemList{}, errors.ParseError{Message: fmt.Sprintf("Error parsing Item: %s", err)}
+		}
+		items = append(items, s.(SimpleItem))
 	}
 
 	return ItemList{

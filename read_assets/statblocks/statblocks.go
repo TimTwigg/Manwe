@@ -7,6 +7,7 @@ import (
 	stat_blocks "github.com/TimTwigg/EncounterManagerBackend/types/stat_blocks"
 	dbutils "github.com/TimTwigg/EncounterManagerBackend/utils/database"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	errors "github.com/pkg/errors"
 )
 
 // Read a stat block from database
@@ -70,8 +71,23 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 		}
 	} else {
 		logger.Error("No stat block found with name: " + name)
-		return stat_blocks.StatBlock{}, nil
+		return stat_blocks.StatBlock{}, errors.New("No stat block found with name: " + name)
 	}
+
+	// Set default values
+	block.DamageModifiers.Immunities = make([]string, 0)
+	block.DamageModifiers.Resistances = make([]string, 0)
+	block.DamageModifiers.Vulnerabilities = make([]string, 0)
+	block.ConditionImmunities = make([]string, 0)
+	block.Details.Senses = make([]generics.NumericalItem, 0)
+	block.Details.Skills = make([]generics.NumericalItem, 0)
+	block.Details.SavingThrows = make([]generics.NumericalItem, 0)
+	block.Details.Traits = make([]generics.SimpleItem, 0)
+	block.Details.Languages.Languages = make([]string, 0)
+	block.Details.Languages.Note = ""
+	block.Actions = make([]actions.Action, 0)
+	block.BonusActions = make([]generics.SimpleItem, 0)
+	block.Reactions = make([]generics.SimpleItem, 0)
 
 	// Read Modifiers
 	mod_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Type, Name, Value, Description FROM EntityModifiers WHERE EntityID = ?", id)
@@ -176,18 +192,267 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 			return stat_blocks.StatBlock{}, err
 		}
 
+		var action = actions.Action{Name: Name, AttackType: AttackType, ToHitModifier: HitModifier, Reach: Reach, Targets: Targets, AdditionalDescription: Description}
+
 		// Create Damage array
-		dmg_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Amount, Type, AltDmgActive, Amount2, Type2, AltDmgNote, AltDmgActive, Ability, DC, HalfDamage, SaveDmgNote FROM EntityActionDamage WHERE EntityID = ? and ActionID = ?", id, ActionID)
+		dmg_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Amount, Type, AltDmgActive, Amount2, Type2, AltDmgNote, SaveDmgActive, Ability, DC, HalfDamage, SaveDmgNote FROM EntityActionDamage WHERE EntityID = ? and ActionID = ?", id, ActionID)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
 			return stat_blocks.StatBlock{}, err
 		}
 		defer dmg_rows.Close()
-		// TODO
+		for dmg_rows.Next() {
+			var Amount string
+			var Type string
+			var AltDmgActive string
+			var Amount2 string
+			var Type2 string
+			var AltDmgNote string
+			var SaveDmgActive string
+			var Ability string
+			var DC int
+			var HalfDamage string
+			var SaveDmgNote string
+			if err := dmg_rows.Scan(
+				&Amount,
+				&Type,
+				&AltDmgActive,
+				&Amount2,
+				&Type2,
+				&AltDmgNote,
+				&SaveDmgActive,
+				&Ability,
+				&DC,
+				&HalfDamage,
+				&SaveDmgNote,
+			); err != nil {
+				logger.Error("Error Scanning Action Damage Row: " + err.Error())
+				return stat_blocks.StatBlock{}, err
+			}
+
+			// Check if AltDmgActive is true
+			if AltDmgActive != "X" {
+				Amount2 = ""
+				Type2 = ""
+				AltDmgNote = ""
+			}
+			// Check if SaveDmgActive is true
+			if SaveDmgActive != "X" {
+				Ability = ""
+				DC = 0
+				HalfDamage = ""
+				SaveDmgNote = ""
+			}
+
+			// Add to Action
+			action.Damage = append(action.Damage, actions.DamageT{
+				Amount: Amount,
+				Type:   Type,
+				AlternativeDamage: actions.AltDamageT{
+					Amount: Amount2,
+					Type:   Type2,
+					Note:   AltDmgNote,
+				},
+				SavingThrow: actions.SavingThrowDamageT{
+					Ability:    Ability,
+					DC:         DC,
+					HalfDamage: HalfDamage == "X",
+					Note:       SaveDmgNote,
+				},
+			})
+		}
 
 		// Add to StatBlock
-		block.Actions = append(block.Actions, actions.Action{Name: Name, AttackType: AttackType, ToHitModifier: HitModifier, Reach: Reach, Targets: Targets, AdditionalDescription: Description})
+		block.Actions = append(block.Actions, action)
+	}
+
+	// Read Bonus Actions and Reactions
+	simple_actions_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Type, Name, Description FROM SimpleAction WHERE EntityID = ?", id)
+	if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return stat_blocks.StatBlock{}, err
+	}
+	defer simple_actions_rows.Close()
+	// Read row from SimpleActions table
+	for simple_actions_rows.Next() {
+		var Type string
+		var Name string
+		var Description string
+		if err := simple_actions_rows.Scan(
+			&Type,
+			&Name,
+			&Description,
+		); err != nil {
+			logger.Error("Error Scanning Simple Action Row: " + err.Error())
+			return stat_blocks.StatBlock{}, err
+		}
+		// Add to StatBlock
+		switch Type {
+		case "Bonus":
+			block.BonusActions = append(block.BonusActions, generics.SimpleItem{Name: Name, Description: Description})
+		case "Reaction":
+			block.Reactions = append(block.Reactions, generics.SimpleItem{Name: Name, Description: Description})
+		default:
+			logger.Error("Unknown simple action type: " + Type)
+		}
+	}
+
+	// Read Legendary Actions
+	super_hdr_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Type, Description, Points FROM EntitySuperActionsH WHERE EntityID = ?", id)
+	if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return stat_blocks.StatBlock{}, err
+	}
+	defer super_hdr_rows.Close()
+	// Read row from LegendaryActions table
+	for super_hdr_rows.Next() {
+		var HType string
+		var HDescription string
+		var HPoints int
+		if err := super_hdr_rows.Scan(
+			&HType,
+			&HDescription,
+			&HPoints,
+		); err != nil {
+			logger.Error("Error Scanning Super Action Header Row: " + err.Error())
+			return stat_blocks.StatBlock{}, err
+		}
+
+		// Add to StatBlock
+		switch HType {
+		case "Legendary":
+			block.LegendaryActions = actions.Legendary{Description: HDescription, Points: HPoints, Actions: make([]actions.LegendaryAction, 0)}
+		case "Mythic":
+			block.MythicActions = actions.Mythic{Description: HDescription, Actions: make([]actions.MythicAction, 0)}
+		default:
+			logger.Error("Unknown legendary action header type: " + HType)
+		}
+
+		// Read Super Actions
+		super_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Name, Description, Points FROM EntitySuperActions WHERE EntityID = ? and Type = ?", id, HType)
+		if err != nil {
+			logger.Error("Error querying database: " + err.Error())
+			return stat_blocks.StatBlock{}, err
+		}
+		defer super_rows.Close()
+		// Read row from SuperActions table
+		for super_rows.Next() {
+			var Name string
+			var Description string
+			var Points int
+			if err := super_rows.Scan(
+				&Name,
+				&Description,
+				&Points,
+			); err != nil {
+				logger.Error("Error Scanning Super Action Row: " + err.Error())
+				return stat_blocks.StatBlock{}, err
+			}
+			// Add to StatBlock
+			switch HType {
+			case "Legendary":
+				block.LegendaryActions.Actions = append(block.LegendaryActions.Actions, actions.LegendaryAction{Name: Name, Description: Description, Cost: Points})
+			case "Mythic":
+				block.MythicActions.Actions = append(block.MythicActions.Actions, actions.MythicAction{Name: Name, Description: Description, Cost: Points})
+			default:
+				logger.Error("Unknown legendary action type: " + HType)
+			}
+		}
+	}
+
+	// Read Lair
+	lair_row, err := dbutils.QuerySQL(dbutils.DB, "SELECT Description, Initiative FROM Lair WHERE EntityID = ?", id)
+	if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return stat_blocks.StatBlock{}, err
+	}
+	defer lair_row.Close()
+	// Read row from Lair table
+	if lair_row.Next() {
+		var Description string
+		var Initiative int
+		if err := lair_row.Scan(
+			&Description,
+			&Initiative,
+		); err != nil {
+			logger.Error("Error Scanning Lair Row: " + err.Error())
+			return stat_blocks.StatBlock{}, err
+		}
+		block.Lair = stat_blocks.Lair{Name: block.Name, Description: Description, Initiative: Initiative, Actions: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}, RegionalEffects: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}}
+
+		// Read Lair Actions
+		lair_actions_row, err := dbutils.QuerySQL(dbutils.DB, "SELECT Name, Description, IsRegional FROM EntityLairActions WHERE EntityID = ?", id)
+		if err != nil {
+			logger.Error("Error querying database: " + err.Error())
+			return stat_blocks.StatBlock{}, err
+		}
+		defer lair_actions_row.Close()
+		// Read row from LairActions table
+		for lair_actions_row.Next() {
+			var Name string
+			var Description string
+			var IsRegional string
+			if err := lair_actions_row.Scan(
+				&Name,
+				&Description,
+				&IsRegional,
+			); err != nil {
+				logger.Error("Error Scanning Lair Action Row: " + err.Error())
+				return stat_blocks.StatBlock{}, err
+			}
+			// Add to StatBlock
+			if Name == "X" {
+				if IsRegional == "X" {
+					block.Lair.RegionalEffects.Description = Description
+				} else {
+					block.Lair.Actions.Description = Description
+				}
+			} else {
+				if IsRegional == "X" {
+					block.Lair.RegionalEffects.Items = append(block.Lair.RegionalEffects.Items, generics.SimpleItem{Name: Name, Description: Description})
+				} else {
+					block.Lair.Actions.Items = append(block.Lair.Actions.Items, generics.SimpleItem{Name: Name, Description: Description})
+				}
+			}
+		}
 	}
 
 	return block, nil
+}
+
+func ReadStatBlockOverviewFromDB(name string) (stat_blocks.StatBlockOverview, error) {
+	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT * FROM EntityOverviews WHERE name = ?", name)
+	if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return stat_blocks.StatBlockOverview{}, err
+	}
+	defer rows.Close()
+	var Name string
+	var Type string
+	var Size string
+	var CR int
+	var Source string
+	if rows.Next() {
+		if err := rows.Scan(
+			&Name,
+			&Type,
+			&Size,
+			&CR,
+			&Source,
+		); err != nil {
+			logger.Error("Error Scanning Entity Row: " + err.Error())
+			return stat_blocks.StatBlockOverview{}, err
+		}
+	} else {
+		logger.Error("No stat block found with name: " + name)
+		return stat_blocks.StatBlockOverview{}, errors.New("No stat block found with name: " + name)
+	}
+
+	return stat_blocks.StatBlockOverview{
+		Name:            Name,
+		Type:            Type,
+		Size:            Size,
+		ChallengeRating: CR,
+		Source:          Source,
+	}, nil
 }

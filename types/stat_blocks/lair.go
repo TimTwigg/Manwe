@@ -19,6 +19,7 @@ type Lair struct {
 
 func (l Lair) Dict() map[string]interface{} {
 	return map[string]interface{}{
+		"Name":            l.Name,
 		"Description":     l.Description,
 		"Initiative":      l.Initiative,
 		"Actions":         l.Actions,
@@ -55,6 +56,7 @@ func ParseLairData(dict map[string]interface{}) (parse.Parseable, error) {
 	}
 
 	return Lair{
+		Name:            dict["Name"].(string),
 		Description:     dict["Description"].(string),
 		Initiative:      utils.GetOptional(dict, "Initiative", 0),
 		Actions:         Actions.(generics.ItemList),
