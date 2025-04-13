@@ -7,7 +7,6 @@ import (
 
 	read_asset_statblocks "github.com/TimTwigg/EncounterManagerBackend/read_assets/statblocks"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
-	requests_utils "github.com/TimTwigg/EncounterManagerBackend/utils/requests"
 )
 
 func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +31,6 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		logger.GetRequest("Requesting StatBlock: (" + name + ") with Detail Level: (" + strconv.Itoa(detail) + ")")
-		requests_utils.EnableCORS(&w)
 
 		switch detail {
 		case 1:
