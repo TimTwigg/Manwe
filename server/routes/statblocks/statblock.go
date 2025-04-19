@@ -30,7 +30,7 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 			detail = d
 		}
 
-		logger.GetRequest("Requesting StatBlock: (" + name + ") with Detail Level: (" + strconv.Itoa(detail) + ")")
+		logger.Info("Requesting StatBlock: (" + name + ") with Detail Level: (" + strconv.Itoa(detail) + ")")
 
 		switch detail {
 		case 1:

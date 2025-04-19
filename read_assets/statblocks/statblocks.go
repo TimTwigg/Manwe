@@ -90,7 +90,7 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 	block.Reactions = make([]generics.SimpleItem, 0)
 
 	// Read Modifiers
-	mod_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Type, Name, Value, Description FROM EntityModifiers WHERE EntityID = ?", id)
+	mod_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Type, Name, Value, Description FROM ModifierV WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, err
@@ -136,7 +136,7 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 	}
 
 	// Read Languages
-	lang_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Language, Description FROM EntityLanguages WHERE EntityID = ?", id)
+	lang_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Language, Description FROM SpokenLanguageV WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, err
@@ -164,7 +164,7 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 	}
 
 	// Read Actions
-	action_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT ActionID, Name, AttackType, HitModifier, Reach, Targets, Description FROM EntityActions WHERE EntityID = ?", id)
+	action_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT ActionID, Name, AttackType, HitModifier, Reach, Targets, Description FROM ActionV WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, err
@@ -195,7 +195,7 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 		var action = actions.Action{Name: Name, AttackType: AttackType, ToHitModifier: HitModifier, Reach: Reach, Targets: Targets, AdditionalDescription: Description}
 
 		// Create Damage array
-		dmg_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Amount, Type, AltDmgActive, Amount2, Type2, AltDmgNote, SaveDmgActive, Ability, DC, HalfDamage, SaveDmgNote FROM EntityActionDamage WHERE EntityID = ? and ActionID = ?", id, ActionID)
+		dmg_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Amount, Type, AltDmgActive, Amount2, Type2, AltDmgNote, SaveDmgActive, Ability, DC, HalfDamage, SaveDmgNote FROM ActionDamageV WHERE EntityID = ? and ActionID = ?", id, ActionID)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
 			return stat_blocks.StatBlock{}, err
@@ -298,7 +298,7 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 	}
 
 	// Read Legendary Actions
-	super_hdr_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Type, Description, Points FROM EntitySuperActionsH WHERE EntityID = ?", id)
+	super_hdr_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Type, Description, Points FROM SuperActionHV WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, err
@@ -329,7 +329,7 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 		}
 
 		// Read Super Actions
-		super_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Name, Description, Points FROM EntitySuperActions WHERE EntityID = ? and Type = ?", id, HType)
+		super_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Name, Description, Points FROM SuperActionV WHERE EntityID = ? and Type = ?", id, HType)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
 			return stat_blocks.StatBlock{}, err
@@ -381,7 +381,7 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 		block.Lair = stat_blocks.Lair{Name: block.Name, Description: Description, Initiative: Initiative, Actions: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}, RegionalEffects: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}}
 
 		// Read Lair Actions
-		lair_actions_row, err := dbutils.QuerySQL(dbutils.DB, "SELECT Name, Description, IsRegional FROM EntityLairActions WHERE EntityID = ?", id)
+		lair_actions_row, err := dbutils.QuerySQL(dbutils.DB, "SELECT Name, Description, IsRegional FROM LairActionV WHERE EntityID = ?", id)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
 			return stat_blocks.StatBlock{}, err
@@ -421,7 +421,7 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 }
 
 func ReadStatBlockOverviewFromDB(name string) (stat_blocks.StatBlockOverview, error) {
-	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT * FROM EntityOverviews WHERE name = ?", name)
+	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT * FROM EntityOverviewV WHERE name = ?", name)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlockOverview{}, err

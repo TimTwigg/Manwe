@@ -16,6 +16,6 @@ func WrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 }
 
 func RegisterRoutes() {
-	http.HandleFunc("/data/statblock", WrapHandler((statblockroutes.StatBlockHandler)))
-	http.HandleFunc("/encounter/save", WrapHandler((encounterroutes.EncounterHandler)))
+	http.HandleFunc("/statblock", WrapHandler((statblockroutes.StatBlockHandler)))
+	http.HandleFunc("/encounter", WrapHandler((encounterroutes.EncounterHandler)))
 }

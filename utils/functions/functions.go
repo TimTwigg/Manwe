@@ -1,5 +1,7 @@
 package utils
 
+import "time"
+
 func Must[T any](value T, err error) T {
 	if err != nil {
 		panic(err)
@@ -19,4 +21,12 @@ func GetOptional[T any](dict map[string]any, key string, default_value T) T {
 		}
 	}
 	return default_value
+}
+
+func ParseStringDate(date string) time.Time {
+	parsedDate, err := time.Parse("20060102", date)
+	if err != nil {
+		panic(err)
+	}
+	return parsedDate
 }
