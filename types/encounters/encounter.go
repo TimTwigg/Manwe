@@ -6,16 +6,18 @@ import (
 )
 
 type Encounter struct {
-	Name            string
-	Description     string
-	Metadata        EncounterMetadata
-	Entities        []entities.Entity
-	HasLair         bool
-	Lair            stat_blocks.Lair
-	LairEntityName  string
-	ActiveID        string
-	InitiativeOrder []chan struct {
-		string
-		int
-	}
+	Name           string
+	Description    string
+	Metadata       EncounterMetadata
+	Entities       []entities.Entity
+	HasLair        bool
+	Lair           stat_blocks.Lair
+	LairEntityName string
+	ActiveID       string
+}
+
+type EncounterOverview struct {
+	Name        string
+	Description string
+	Metadata    EncounterMetadata
 }

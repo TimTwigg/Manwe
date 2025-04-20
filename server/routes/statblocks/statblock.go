@@ -42,18 +42,20 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			w.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(w).Encode(statBlockOverview); err != nil {
+				logger.Error("StatBlockHandler: Error encoding JSON: " + err.Error())
 				http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 				return
 			}
 		case 2:
 			// Read the statblock from the database
-			statBlock, err := read_asset_statblocks.ReadStatBlockFromDB(name)
+			statBlock, err := read_asset_statblocks.ReadStatBlockByName(name)
 			if err != nil {
 				http.Error(w, "StatBlock not found", http.StatusNotFound)
 				return
 			}
 			w.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(w).Encode(statBlock); err != nil {
+				logger.Error("StatBlockHandler: Error encoding JSON: " + err.Error())
 				http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 				return
 			}

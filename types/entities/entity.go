@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"github.com/TimTwigg/EncounterManagerBackend/types/generics"
 	stat_blocks "github.com/TimTwigg/EncounterManagerBackend/types/stat_blocks"
 )
 
@@ -10,6 +11,11 @@ const (
 	StatBlock EntityType = iota
 	Player
 )
+
+type SpellSlotLevel struct {
+	total int
+	used  int
+}
 
 type Entity struct {
 	id               string
@@ -24,27 +30,13 @@ type Entity struct {
 	Speed            stat_blocks.Speeds
 	Conditions       map[string]int
 	SpellSaveDC      int
-	SpellSlots       map[int]chan struct {
-		total int
-		used  int
-	}
-	Concentration bool
-	Reactions     chan struct {
-		total int
-		used  int
-	}
-	Notes           string
-	IsHostile       bool
-	EncounterLocked bool
-	Displayable     any
-	EntityType      EntityType
-	SavingThrows    chan struct {
-		Strength     int
-		Dexterity    int
-		Constitution int
-		Intelligence int
-		Wisdom       int
-		Charisma     int
-	}
-	DifficultyRating float32
+	SpellSlots       map[int]SpellSlotLevel
+	Concentration    bool
+	Notes            string
+	IsHostile        bool
+	EncounterLocked  bool
+	Displayable      any
+	EntityType       EntityType
+	SavingThrows     []generics.NumericalItem
+	ChallengeRating  float32
 }

@@ -1,6 +1,8 @@
 package read_asset_statblocks
 
 import (
+	"strconv"
+
 	asset_utils "github.com/TimTwigg/EncounterManagerBackend/read_assets/utils"
 	actions "github.com/TimTwigg/EncounterManagerBackend/types/actions"
 	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
@@ -29,19 +31,19 @@ func ReadStatBlock(name string) (stat_blocks.StatBlock, error) {
 	return stat_blocks.StatBlock{}, nil
 }
 
-func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
+func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	// Read Entity information
-	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT * FROM Entity WHERE name = ?", name)
+	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT * FROM Entity WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, err
 	}
 	defer rows.Close()
-	var id int
+	var t int
 	var block stat_blocks.StatBlock
 	if rows.Next() {
 		if err := rows.Scan(
-			&id,
+			&t,
 			&block.Name,
 			&block.ChallengeRating,
 			&block.ProficiencyBonus,
@@ -70,8 +72,8 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 			return stat_blocks.StatBlock{}, err
 		}
 	} else {
-		logger.Error("No stat block found with name: " + name)
-		return stat_blocks.StatBlock{}, errors.New("No stat block found with name: " + name)
+		logger.Error("No stat block found with id: " + strconv.Itoa(id))
+		return stat_blocks.StatBlock{}, errors.New("No stat block found with id: " + strconv.Itoa(id))
 	}
 
 	// Set default values
@@ -418,6 +420,29 @@ func ReadStatBlockFromDB(name string) (stat_blocks.StatBlock, error) {
 	}
 
 	return block, nil
+}
+
+func ReadStatBlockByName(name string) (stat_blocks.StatBlock, error) {
+	// Read Entity information
+	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT EntityID FROM Entity WHERE name = ?", name)
+	if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return stat_blocks.StatBlock{}, err
+	}
+	defer rows.Close()
+	var id int
+	if rows.Next() {
+		if err := rows.Scan(
+			&id,
+		); err != nil {
+			logger.Error("Error Scanning Row: " + err.Error())
+			return stat_blocks.StatBlock{}, err
+		}
+	} else {
+		logger.Error("No stat block found with name: " + name)
+		return stat_blocks.StatBlock{}, errors.New("No stat block found with name: " + name)
+	}
+	return ReadStatBlockByID(id)
 }
 
 func ReadStatBlockOverviewFromDB(name string) (stat_blocks.StatBlockOverview, error) {
