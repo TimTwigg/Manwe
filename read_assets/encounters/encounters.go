@@ -168,43 +168,47 @@ func ReadEncounterOverview(name string) (encounters.EncounterOverview, error) {
 }
 
 func ReadAllEncounterOverviews() ([]encounters.EncounterOverview, error) {
-	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT * FROM Encounter")
+	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter")
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return nil, err
 	}
 	defer rows.Close()
 
-	var encounters []encounters.EncounterOverview = make([]encounters.EncounterOverview, 0)
+	var encs []encounters.EncounterOverview = make([]encounters.EncounterOverview, 0)
 
-	// for rows.Next() {
-	// 	var Name, Description, Campaign, CreationDate, AccessedDate string
-	// 	var Round, Turn int
-	// 	if err := rows.Scan(
-	// 		&Name,
-	// 		&Description,
-	// 		&CreationDate,
-	// 		&AccessedDate,
-	// 		&Campaign,
-	// 		&Round,
-	// 		&Turn,
-	// 	); err != nil {
-	// 		logger.Error("Error Scanning Encounter Row: " + err.Error())
-	// 		return nil, err
-	// 	}
-	// 	encounter = encounters.EncounterOverview{
-	// 		Name:        Name,
-	// 		Description: Description,
-	// 		Metadata: encounters.EncounterMetadata{
-	// 			Campaign: Campaign,
-	// 			Round:    Round,
-	// 			Turn:     Turn,
-	// 		},
-	// 	}
-	// 	encounter.Metadata.CreationDate = utils.ParseStringDate(CreationDate)
-	// 	encounter.Metadata.AccessedDate = utils.ParseStringDate(AccessedDate)
-	// 	encounters = append(encounters, encounter)
-	// }
+	for rows.Next() {
+		var Name, Description, Campaign, CreationDate, AccessedDate, Started string
+		var Round, Turn, id int
+		if err := rows.Scan(
+			&id,
+			&Name,
+			&Description,
+			&CreationDate,
+			&AccessedDate,
+			&Campaign,
+			&Started,
+			&Round,
+			&Turn,
+		); err != nil {
+			logger.Error("Error Scanning Encounter Row: " + err.Error())
+			return nil, err
+		}
+		encounter := encounters.EncounterOverview{
+			ID:          id,
+			Name:        Name,
+			Description: Description,
+			Metadata: encounters.EncounterMetadata{
+				Campaign: Campaign,
+				Started:  Started == "X",
+				Round:    Round,
+				Turn:     Turn,
+			},
+		}
+		encounter.Metadata.CreationDate = utils.ParseStringDate(CreationDate)
+		encounter.Metadata.AccessedDate = utils.ParseStringDate(AccessedDate)
+		encs = append(encs, encounter)
+	}
 
-	return encounters, nil
+	return encs, nil
 }

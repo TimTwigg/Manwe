@@ -1,6 +1,6 @@
 CREATE TABLE
     "Encounter" (
-        "EncounterID" INTEGER NOT NULL UNIQUE,
+        "EncounterID" INTEGER NOT NULL UNIQUE CHECK ("EncounterID" > 0),
         "Name" TEXT DEFAULT '',
         "Description" TEXT DEFAULT '',
         "CreationDate" TEXT NOT NULL CHECK (length ("CreationDate") = 8),

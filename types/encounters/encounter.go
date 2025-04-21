@@ -6,6 +6,7 @@ import (
 )
 
 type Encounter struct {
+	ID             int
 	Name           string
 	Description    string
 	Metadata       EncounterMetadata
@@ -16,8 +17,31 @@ type Encounter struct {
 	ActiveID       string
 }
 
+func (e Encounter) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"data_type":   "Encounter",
+		"ID":          e.ID,
+		"Name":        e.Name,
+		"Description": e.Description,
+		"Metadata":    e.Metadata.Dict(),
+		"Entities":    e.Entities,
+		"HasLair":     e.HasLair,
+	}
+}
+
 type EncounterOverview struct {
+	ID          int
 	Name        string
 	Description string
 	Metadata    EncounterMetadata
+}
+
+func (eo EncounterOverview) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"data_type":   "EncounterOverview",
+		"ID":          eo.ID,
+		"Name":        eo.Name,
+		"Description": eo.Description,
+		"Metadata":    eo.Metadata.Dict(),
+	}
 }
