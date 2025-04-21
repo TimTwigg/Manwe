@@ -36,6 +36,11 @@ func GetDB() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if err = db.Ping(); err != nil {
+		return nil, err
+	}
+
 	return db, nil
 }
 
@@ -55,4 +60,12 @@ func QuerySQL(db *sql.DB, query string, args ...any) (*sql.Rows, error) {
 		return nil, err
 	}
 	return rows, nil
+}
+
+func ExecSQL(db *sql.DB, query string, args ...any) (sql.Result, error) {
+	result, err := db.Exec(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }

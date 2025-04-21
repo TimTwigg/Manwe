@@ -1,6 +1,8 @@
 package read_asset_encounters
 
 import (
+	"strconv"
+
 	read_asset_statblocks "github.com/TimTwigg/EncounterManagerBackend/read_assets/statblocks"
 	encounters "github.com/TimTwigg/EncounterManagerBackend/types/encounters"
 	entities "github.com/TimTwigg/EncounterManagerBackend/types/entities"
@@ -11,15 +13,14 @@ import (
 	errors "github.com/pkg/errors"
 )
 
-func ReadEncounterFromDB(name string) (encounters.Encounter, error) {
-	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT * FROM Encounter WHERE name = ?", name)
+func ReadEncounterByID(id int) (encounters.Encounter, error) {
+	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT * FROM Encounter WHERE EncounterID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
 	}
 	defer rows.Close()
 
-	var id int
 	var encounter encounters.Encounter
 
 	encounter.Entities = make([]entities.Entity, 0)
@@ -50,8 +51,8 @@ func ReadEncounterFromDB(name string) (encounters.Encounter, error) {
 		encounter.Metadata.Started = Started == "X"
 		encounter.HasLair = HasLair == "X"
 	} else {
-		logger.Error("No Encounter found with name: " + name)
-		return encounters.Encounter{}, errors.New("No Encounter found with name: " + name)
+		logger.Error("No Encounter found with id: " + strconv.Itoa(id))
+		return encounters.Encounter{}, errors.New("No Encounter found with id: " + strconv.Itoa(id))
 	}
 
 	entity_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Notes, IsHostile, EncounterLocked FROM EncounterEntities WHERE EncounterID = ?", id)
@@ -132,8 +133,30 @@ func ReadEncounterFromDB(name string) (encounters.Encounter, error) {
 	return encounter, nil
 }
 
-func ReadEncounterOverview(name string) (encounters.EncounterOverview, error) {
-	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT * FROM Encounter WHERE name = ?", name)
+func ReadEncounterByName(name string) (encounters.Encounter, error) {
+	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT EncounterID FROM Encounter WHERE name = ?", name)
+	if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return encounters.Encounter{}, err
+	}
+	defer rows.Close()
+
+	var id int
+	if rows.Next() {
+		if err := rows.Scan(&id); err != nil {
+			logger.Error("Error Scanning Encounter Row: " + err.Error())
+			return encounters.Encounter{}, err
+		}
+	} else {
+		logger.Error("No Encounter found with name: " + name)
+		return encounters.Encounter{}, errors.New("No Encounter found with name: " + name)
+	}
+
+	return ReadEncounterByID(id)
+}
+
+func ReadEncounterOverviewByID(id int) (encounters.EncounterOverview, error) {
+	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter WHERE EncounterID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.EncounterOverview{}, err
@@ -159,12 +182,35 @@ func ReadEncounterOverview(name string) (encounters.EncounterOverview, error) {
 		}
 		encounter.Metadata.CreationDate = utils.ParseStringDate(CreationDate)
 		encounter.Metadata.AccessedDate = utils.ParseStringDate(AccessedDate)
+		encounter.Metadata.Started = Started == "X"
+	} else {
+		logger.Error("No Encounter found with id: " + strconv.Itoa(id))
+		return encounters.EncounterOverview{}, errors.New("No Encounter found with id: " + strconv.Itoa(id))
+	}
+
+	return encounter, nil
+}
+
+func ReadEncounterOverviewByName(name string) (encounters.EncounterOverview, error) {
+	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT EncounterID FROM Encounter WHERE Name = ?", name)
+	if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return encounters.EncounterOverview{}, err
+	}
+	defer rows.Close()
+	var id int
+
+	if rows.Next() {
+		if err := rows.Scan(&id); err != nil {
+			logger.Error("Error Scanning Encounter Row: " + err.Error())
+			return encounters.EncounterOverview{}, err
+		}
 	} else {
 		logger.Error("No Encounter found with name: " + name)
 		return encounters.EncounterOverview{}, errors.New("No Encounter found with name: " + name)
 	}
 
-	return encounter, nil
+	return ReadEncounterOverviewByID(id)
 }
 
 func ReadAllEncounterOverviews() ([]encounters.EncounterOverview, error) {
@@ -211,4 +257,92 @@ func ReadAllEncounterOverviews() ([]encounters.EncounterOverview, error) {
 	}
 
 	return encs, nil
+}
+
+func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) {
+	if encounter.ID == 0 {
+		res, err := dbutils.ExecSQL(
+			dbutils.DB,
+			"INSERT INTO Encounter (Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairEntityName, ActiveID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			encounter.ID,
+			encounter.Name,
+			encounter.Description,
+			utils.FormatDate(encounter.Metadata.CreationDate),
+			utils.FormatDate(encounter.Metadata.AccessedDate),
+			encounter.Metadata.Campaign,
+			utils.FormatBool(encounter.Metadata.Started),
+			encounter.Metadata.Round,
+			encounter.Metadata.Turn,
+			utils.FormatBool(encounter.HasLair),
+			encounter.LairEntityName,
+			encounter.ActiveID,
+		)
+		if err != nil {
+			logger.Error("Error inserting Encounter: " + err.Error())
+			return encounters.Encounter{}, err
+		}
+		id, err := res.LastInsertId()
+		if err != nil {
+			logger.Error("Error getting last insert ID: " + err.Error())
+			return encounters.Encounter{}, err
+		}
+		encounter.ID = int(id)
+		return encounter, nil
+	} else {
+		_, err := dbutils.ExecSQL(
+			dbutils.DB,
+			"UPDATE Encounter SET Name = ?, Description = ?, CreationDate = ?, AccessedDate = ?, Campaign = ?, Started = ?, Round = ?, Turn = ?, HasLair = ?, LairEntityName = ?, ActiveID = ? WHERE EncounterID = ?",
+			encounter.Name,
+			encounter.Description,
+			utils.FormatDate(encounter.Metadata.CreationDate),
+			utils.FormatDate(encounter.Metadata.AccessedDate),
+			encounter.Metadata.Campaign,
+			utils.FormatBool(encounter.Metadata.Started),
+			encounter.Metadata.Round,
+			encounter.Metadata.Turn,
+			utils.FormatBool(encounter.HasLair),
+			encounter.LairEntityName,
+			encounter.ActiveID,
+			encounter.ID,
+		)
+		if err != nil {
+			logger.Error("Error updating Encounter: " + err.Error())
+			return encounters.Encounter{}, err
+		}
+		return encounter, nil
+	}
+}
+
+func ReadEncounterByAccessType(accessType string, accessor string) (encounters.Encounter, error) {
+	switch accessType {
+	case "id":
+		id, err := strconv.Atoi(accessor)
+		if err != nil {
+			logger.Error("Error converting id to int: " + err.Error())
+			return encounters.Encounter{}, err
+		}
+		return ReadEncounterByID(id)
+	case "name":
+		return ReadEncounterByName(accessor)
+	default:
+		logger.Error("Invalid access type: " + accessType)
+		return encounters.Encounter{}, errors.New("Invalid access type: " + accessType)
+	}
+}
+
+func ReadEncounterOverviewByAccessType(accessType string, accessor string) (encounters.EncounterOverview, error) {
+	switch accessType {
+	case "id":
+		id, err := strconv.Atoi(accessor)
+		if err != nil {
+			logger.Error("Error converting id to int: " + err.Error())
+			return encounters.EncounterOverview{}, err
+		}
+		return ReadEncounterOverviewByID(id)
+	case "name":
+		return ReadEncounterOverviewByName(accessor)
+	default:
+		logger.Error("Invalid access type: " + accessType)
+		return encounters.EncounterOverview{}, errors.New("Invalid access type: " + accessType)
+	}
 }

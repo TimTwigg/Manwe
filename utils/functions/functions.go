@@ -30,3 +30,14 @@ func ParseStringDate(date string) time.Time {
 	}
 	return parsedDate
 }
+
+func FormatBool(value bool) string {
+	if value {
+		return "X"
+	}
+	return ""
+}
+
+func FormatDate(date time.Time) string {
+	return date.Format("20060102")
+}

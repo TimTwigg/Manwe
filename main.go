@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	routes "github.com/TimTwigg/EncounterManagerBackend/server"
 	dbutils "github.com/TimTwigg/EncounterManagerBackend/utils/database"
@@ -24,6 +27,12 @@ func Validate() {
 	logger.Info("Validation complete!")
 }
 
+func cleanup() {
+	dbutils.CloseDB(dbutils.DB)
+	logger.Info("Database closed.")
+	logger.Info("Server stopped.")
+}
+
 func main() {
 	routes.RegisterRoutes()
 
@@ -36,8 +45,17 @@ func main() {
 	dbutils.DB = database
 	logger.Info("Database loaded.")
 
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		cleanup()
+		os.Exit(1)
+	}()
+
 	logger.Info("Server started on port 8080")
 	if err := http.ListenAndServe("localhost:8080", nil); err != nil {
+		dbutils.CloseDB(dbutils.DB)
 		log.Fatal(err)
 	}
 }

@@ -8,6 +8,7 @@ import (
 	read_asset_encounters "github.com/TimTwigg/EncounterManagerBackend/read_assets/encounters"
 	encounters "github.com/TimTwigg/EncounterManagerBackend/types/encounters"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	requests_utils "github.com/TimTwigg/EncounterManagerBackend/utils/requests"
 )
 
 func EncounterHandler(w http.ResponseWriter, r *http.Request) {
@@ -16,27 +17,31 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 		logger.GetRequest("EncounterHandler: GET request")
 		defer r.Body.Close()
 
-		detail_level := r.URL.Query().Get("detail_level")
-		var detail int = 1
-		if detail_level != "" {
-			d, err := strconv.Atoi(detail_level)
-			if err != nil || (d < 1 || d > 2) {
-				http.Error(w, "Invalid detail level", http.StatusBadRequest)
-				return
-			}
-			detail = d
-		}
-
-		name := r.URL.Query().Get("name")
-		if name == "" {
-			http.Error(w, "Encounter name is required", http.StatusBadRequest)
+		detail, err := requests_utils.GetDetailLevel(r)
+		if err != nil || detail < 1 || detail > 2 {
+			logger.Error("EncounterHandler: Error getting detail level: " + err.Error())
+			http.Error(w, "Error getting detail level", http.StatusBadRequest)
 			return
 		}
-		logger.Info("Requesting Encounter: (" + name + ") with detail level: " + strconv.Itoa(detail))
+
+		var accessType string = "id"
+		var accessor string = ""
+
+		accessor = r.URL.Query().Get("id")
+		if accessor == "" {
+			accessType = "name"
+			accessor = r.URL.Query().Get("name")
+			if accessor == "" {
+				http.Error(w, "Encounter id or name is required", http.StatusBadRequest)
+				return
+			}
+		}
+
+		logger.Info("Requesting Encounter: (" + accessType + ": " + accessor + ") with detail level: " + strconv.Itoa(detail))
 
 		switch detail {
 		case 1:
-			encounter, err := read_asset_encounters.ReadEncounterOverview(name)
+			encounter, err := read_asset_encounters.ReadEncounterOverviewByAccessType(accessType, accessor)
 			if err != nil {
 				http.Error(w, "Encounter not found", http.StatusNotFound)
 				return
@@ -48,7 +53,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		case 2:
-			encounter, err := read_asset_encounters.ReadEncounterFromDB(name)
+			encounter, err := read_asset_encounters.ReadEncounterByAccessType(accessType, accessor)
 			if err != nil {
 				http.Error(w, "Encounter not found", http.StatusNotFound)
 				return
@@ -70,8 +75,18 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 
 		enc := encounters.Encounter{}
 		json.NewDecoder(r.Body).Decode(&enc)
-		logger.Info("EncounterHandler: Received encounter: " + enc.Name)
-
+		enc, err := read_asset_encounters.SetEncounter(enc)
+		if err != nil {
+			logger.Error("EncounterHandler: Error setting encounter: " + err.Error())
+			http.Error(w, "Error setting encounter", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(enc); err != nil {
+			logger.Error("EncounterHandler: Error encoding JSON: " + err.Error())
+			http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+			return
+		}
 		w.WriteHeader(http.StatusOK)
 
 	default:
