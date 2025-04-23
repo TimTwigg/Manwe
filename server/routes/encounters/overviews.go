@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	read_asset_encounters "github.com/TimTwigg/EncounterManagerBackend/read_assets/encounters"
+	assets "github.com/TimTwigg/EncounterManagerBackend/assets/encounters"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 	requests_utils "github.com/TimTwigg/EncounterManagerBackend/utils/requests"
 )
@@ -17,7 +17,7 @@ func EncounterOverviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	encounters, err := read_asset_encounters.ReadAllEncounterOverviews()
+	encounters, err := assets.ReadAllEncounterOverviews()
 	if err != nil {
 		http.Error(w, "Error reading encounters", http.StatusInternalServerError)
 		return

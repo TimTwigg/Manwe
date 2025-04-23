@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	read_asset_encounters "github.com/TimTwigg/EncounterManagerBackend/read_assets/encounters"
+	assets "github.com/TimTwigg/EncounterManagerBackend/assets/encounters"
 	encounters "github.com/TimTwigg/EncounterManagerBackend/types/encounters"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 	requests_utils "github.com/TimTwigg/EncounterManagerBackend/utils/requests"
@@ -41,7 +41,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 
 		switch detail {
 		case 1:
-			encounter, err := read_asset_encounters.ReadEncounterOverviewByAccessType(accessType, accessor)
+			encounter, err := assets.ReadEncounterOverviewByAccessType(accessType, accessor)
 			if err != nil {
 				http.Error(w, "Encounter not found", http.StatusNotFound)
 				return
@@ -53,7 +53,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		case 2:
-			encounter, err := read_asset_encounters.ReadEncounterByAccessType(accessType, accessor)
+			encounter, err := assets.ReadEncounterByAccessType(accessType, accessor)
 			if err != nil {
 				http.Error(w, "Encounter not found", http.StatusNotFound)
 				return
@@ -75,7 +75,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 
 		enc := encounters.Encounter{}
 		json.NewDecoder(r.Body).Decode(&enc)
-		enc, err := read_asset_encounters.SetEncounter(enc)
+		enc, err := assets.SetEncounter(enc)
 		if err != nil {
 			logger.Error("EncounterHandler: Error setting encounter: " + err.Error())
 			http.Error(w, "Error setting encounter", http.StatusInternalServerError)

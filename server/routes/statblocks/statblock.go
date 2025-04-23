@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	read_asset_statblocks "github.com/TimTwigg/EncounterManagerBackend/read_assets/statblocks"
+	assets "github.com/TimTwigg/EncounterManagerBackend/assets/statblocks"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
@@ -35,7 +35,7 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 		switch detail {
 		case 1:
 			// Read the statblock overview from the database
-			statBlockOverview, err := read_asset_statblocks.ReadStatBlockOverviewFromDB(name)
+			statBlockOverview, err := assets.ReadStatBlockOverviewFromDB(name)
 			if err != nil {
 				http.Error(w, "StatBlock not found", http.StatusNotFound)
 				return
@@ -48,7 +48,7 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		case 2:
 			// Read the statblock from the database
-			statBlock, err := read_asset_statblocks.ReadStatBlockByName(name)
+			statBlock, err := assets.ReadStatBlockByName(name)
 			if err != nil {
 				http.Error(w, "StatBlock not found", http.StatusNotFound)
 				return

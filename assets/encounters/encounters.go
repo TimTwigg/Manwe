@@ -1,9 +1,9 @@
-package read_asset_encounters
+package assets
 
 import (
 	"strconv"
 
-	read_asset_statblocks "github.com/TimTwigg/EncounterManagerBackend/read_assets/statblocks"
+	sb_assets "github.com/TimTwigg/EncounterManagerBackend/assets/statblocks"
 	encounters "github.com/TimTwigg/EncounterManagerBackend/types/encounters"
 	entities "github.com/TimTwigg/EncounterManagerBackend/types/entities"
 	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
@@ -82,7 +82,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 			return encounters.Encounter{}, err
 		}
 
-		statblock, err := read_asset_statblocks.ReadStatBlockByID(entityID)
+		statblock, err := sb_assets.ReadStatBlockByID(entityID)
 		if err != nil {
 			logger.Error("Error reading statblock: " + err.Error())
 			return encounters.Encounter{}, err

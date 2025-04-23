@@ -173,7 +173,7 @@ func init() {
 	parse.PARSERS.Set("StatBlock", ParseStatBlockData)
 
 	// Build dictionary of default stat blocks from files in the assets/stat_blocks folder.
-	statBlocks, err := parse.ParseAllFilesInFolder("assets/stat_blocks", ParseStatBlockData)
+	statBlocks, err := parse.ParseAllFilesInFolder("public_assets/stat_blocks", ParseStatBlockData)
 	if err != nil {
 		panic(fmt.Errorf("error initializing 'stat_block' objects: %s", err))
 	}

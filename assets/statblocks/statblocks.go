@@ -1,9 +1,9 @@
-package read_asset_statblocks
+package assets
 
 import (
 	"strconv"
 
-	asset_utils "github.com/TimTwigg/EncounterManagerBackend/read_assets/utils"
+	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
 	actions "github.com/TimTwigg/EncounterManagerBackend/types/actions"
 	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
 	stat_blocks "github.com/TimTwigg/EncounterManagerBackend/types/stat_blocks"
