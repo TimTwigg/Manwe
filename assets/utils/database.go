@@ -1,4 +1,4 @@
-package database
+package asset_utils
 
 import (
 	"database/sql"

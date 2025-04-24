@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	assets "github.com/TimTwigg/EncounterManagerBackend/assets/statblocks"
+	assets "github.com/TimTwigg/EncounterManagerBackend/assets"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 

@@ -3,18 +3,17 @@ package assets
 import (
 	"strconv"
 
-	sb_assets "github.com/TimTwigg/EncounterManagerBackend/assets/statblocks"
+	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
 	encounters "github.com/TimTwigg/EncounterManagerBackend/types/encounters"
 	entities "github.com/TimTwigg/EncounterManagerBackend/types/entities"
 	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
-	dbutils "github.com/TimTwigg/EncounterManagerBackend/utils/database"
 	utils "github.com/TimTwigg/EncounterManagerBackend/utils/functions"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 	errors "github.com/pkg/errors"
 )
 
 func ReadEncounterByID(id int) (encounters.Encounter, error) {
-	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT * FROM Encounter WHERE EncounterID = ?", id)
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT * FROM Encounter WHERE EncounterID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
@@ -55,7 +54,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 		return encounters.Encounter{}, errors.New("No Encounter found with id: " + strconv.Itoa(id))
 	}
 
-	entity_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Notes, IsHostile, EncounterLocked FROM EncounterEntities WHERE EncounterID = ?", id)
+	entity_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Notes, IsHostile, EncounterLocked FROM EncounterEntities WHERE EncounterID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
@@ -82,7 +81,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 			return encounters.Encounter{}, err
 		}
 
-		statblock, err := sb_assets.ReadStatBlockByID(entityID)
+		statblock, err := ReadStatBlockByID(entityID)
 		if err != nil {
 			logger.Error("Error reading statblock: " + err.Error())
 			return encounters.Encounter{}, err
@@ -111,7 +110,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 			ChallengeRating:  statblock.ChallengeRating,
 		}
 
-		conditions_rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Condition, Duration FROM EncEntConditions WHERE EncounterID = ? and RowID = ?", id, rowID)
+		conditions_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Condition, Duration FROM EncEntConditions WHERE EncounterID = ? and RowID = ?", id, rowID)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
 			return encounters.Encounter{}, err
@@ -134,7 +133,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 }
 
 func ReadEncounterByName(name string) (encounters.Encounter, error) {
-	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT EncounterID FROM Encounter WHERE name = ?", name)
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID FROM Encounter WHERE name = ?", name)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
@@ -156,7 +155,7 @@ func ReadEncounterByName(name string) (encounters.Encounter, error) {
 }
 
 func ReadEncounterOverviewByID(id int) (encounters.EncounterOverview, error) {
-	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter WHERE EncounterID = ?", id)
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter WHERE EncounterID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.EncounterOverview{}, err
@@ -192,7 +191,7 @@ func ReadEncounterOverviewByID(id int) (encounters.EncounterOverview, error) {
 }
 
 func ReadEncounterOverviewByName(name string) (encounters.EncounterOverview, error) {
-	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT EncounterID FROM Encounter WHERE Name = ?", name)
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID FROM Encounter WHERE Name = ?", name)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.EncounterOverview{}, err
@@ -214,7 +213,7 @@ func ReadEncounterOverviewByName(name string) (encounters.EncounterOverview, err
 }
 
 func ReadAllEncounterOverviews() ([]encounters.EncounterOverview, error) {
-	rows, err := dbutils.QuerySQL(dbutils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter")
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter")
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return nil, err
@@ -261,8 +260,8 @@ func ReadAllEncounterOverviews() ([]encounters.EncounterOverview, error) {
 
 func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) {
 	if encounter.ID == 0 {
-		res, err := dbutils.ExecSQL(
-			dbutils.DB,
+		res, err := asset_utils.ExecSQL(
+			asset_utils.DB,
 			"INSERT INTO Encounter (Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairEntityName, ActiveID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 			encounter.ID,
 			encounter.Name,
@@ -289,8 +288,8 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 		encounter.ID = int(id)
 		return encounter, nil
 	} else {
-		_, err := dbutils.ExecSQL(
-			dbutils.DB,
+		_, err := asset_utils.ExecSQL(
+			asset_utils.DB,
 			"UPDATE Encounter SET Name = ?, Description = ?, CreationDate = ?, AccessedDate = ?, Campaign = ?, Started = ?, Round = ?, Turn = ?, HasLair = ?, LairEntityName = ?, ActiveID = ? WHERE EncounterID = ?",
 			encounter.Name,
 			encounter.Description,

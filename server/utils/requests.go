@@ -1,4 +1,4 @@
-package requests_utils
+package server_utils
 
 import (
 	"net/http"

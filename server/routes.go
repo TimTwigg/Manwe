@@ -5,14 +5,14 @@ import (
 
 	encounterroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/encounters"
 	statblockroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/statblocks"
+	server_utils "github.com/TimTwigg/EncounterManagerBackend/server/utils"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
-	requests_utils "github.com/TimTwigg/EncounterManagerBackend/utils/requests"
 )
 
 func WrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger.Info("Request received: [" + r.Method + "] " + r.URL.Path)
-		requests_utils.EnableCORS(&w)
+		server_utils.EnableCORS(&w)
 		handler(w, r)
 	}
 }

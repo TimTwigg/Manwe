@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
-	assets "github.com/TimTwigg/EncounterManagerBackend/assets/encounters"
+	assets "github.com/TimTwigg/EncounterManagerBackend/assets"
+	server_utils "github.com/TimTwigg/EncounterManagerBackend/server/utils"
 	encounters "github.com/TimTwigg/EncounterManagerBackend/types/encounters"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
-	requests_utils "github.com/TimTwigg/EncounterManagerBackend/utils/requests"
 )
 
 func EncounterHandler(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +17,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 		logger.GetRequest("EncounterHandler: GET request")
 		defer r.Body.Close()
 
-		detail, err := requests_utils.GetDetailLevel(r)
+		detail, err := server_utils.GetDetailLevel(r)
 		if err != nil || detail < 1 || detail > 2 {
 			logger.Error("EncounterHandler: Error getting detail level: " + err.Error())
 			http.Error(w, "Error getting detail level", http.StatusBadRequest)
