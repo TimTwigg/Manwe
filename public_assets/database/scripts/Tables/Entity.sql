@@ -24,7 +24,12 @@ CREATE TABLE
         "Wisdom" INTEGER NOT NULL CHECK ("Wisdom" > 0),
         "Charisma" INTEGER NOT NULL CHECK ("Charisma" > 0),
         "ArmorType" TEXT NOT NULL,
+        "RecordSource" TEXT NOT NULL,
+        "Domain" TEXT NOT NULL DEFAULT 'Private',
+        "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),
         PRIMARY KEY ("EntityID" AUTOINCREMENT),
         FOREIGN KEY ("Size") REFERENCES "Size" ("Size"),
-        FOREIGN KEY ("Type") REFERENCES "EntityType" ("EntityType")
+        FOREIGN KEY ("Type") REFERENCES "EntityType" ("EntityType"),
+        FOREIGN KEY ("RecordSource") REFERENCES "RecordSource" ("RecordSource"),
+        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName")
     )

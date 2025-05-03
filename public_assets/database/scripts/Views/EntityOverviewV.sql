@@ -5,6 +5,8 @@ SELECT
     Type,
     Size,
     ChallengeRating,
-    Source
+    Source,
+    Domain,
+    Published
 FROM
     Entity

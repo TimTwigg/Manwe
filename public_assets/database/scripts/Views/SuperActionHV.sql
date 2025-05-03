@@ -4,7 +4,9 @@ SELECT
     EntityID,
     Type,
     Description,
-    Points
+    Points,
+    Domain,
+    Published
 FROM
     SuperAction
 WHERE

@@ -3,6 +3,8 @@ CREATE VIEW
 SELECT
     EntityID,
     Language,
-    coalesce(Description, '') as Description
+    coalesce(Description, '') as Description,
+    Domain,
+    Published
 FROM
     SpokenLanguage

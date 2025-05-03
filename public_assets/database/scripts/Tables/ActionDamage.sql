@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS "ActionDamage";
-
 CREATE TABLE
     "ActionDamage" (
         "EntityID" INTEGER NOT NULL,
@@ -16,10 +14,13 @@ CREATE TABLE
         "DC" INTEGER,
         "HalfDamage" TEXT CHECK ("HalfDamage" IN ('X', '')) COLLATE NOCASE,
         "SaveDmgNote" TEXT,
+        "Domain" TEXT NOT NULL DEFAULT 'Private',
+        "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),
         PRIMARY KEY ("EntityID", "ActionID", "DamageID"),
         FOREIGN KEY ("EntityID") REFERENCES "Entity" ("EntityID") ON DELETE CASCADE,
         FOREIGN KEY ("EntityID", "ActionID") REFERENCES "Action" ("EntityID", "ActionID") ON DELETE CASCADE,
         FOREIGN KEY ("Type") REFERENCES "DamageType" ("DamageType"),
         FOREIGN KEY ("Type2") REFERENCES "DamageType" ("DamageType"),
-        FOREIGN KEY ("Ability") REFERENCES "Ability" ("Ability")
+        FOREIGN KEY ("Ability") REFERENCES "Ability" ("Ability"),
+        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName")
     );

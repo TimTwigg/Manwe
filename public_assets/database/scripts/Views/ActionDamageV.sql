@@ -13,6 +13,8 @@ SELECT
     coalesce(Ability, '') as Ability,
     coalesce(DC, 0) as DC,
     coalesce(HalfDamage, '') as HalfDamage,
-    coalesce(SaveDmgNote, '') as SaveDmgNote
+    coalesce(SaveDmgNote, '') as SaveDmgNote,
+    Domain,
+    Published
 FROM
     ActionDamage

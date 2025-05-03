@@ -12,5 +12,8 @@ CREATE TABLE
         "HasLair" TEXT DEFAULT '' CHECK ("HasLair" IN ('X', '')) COLLATE NOCASE,
         "LairEntityName" TEXT DEFAULT '',
         "ActiveID" TEXT DEFAULT '',
-        PRIMARY KEY ("EncounterID" AUTOINCREMENT)
+        "Domain" TEXT NOT NULL DEFAULT 'Private',
+        "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),
+        PRIMARY KEY ("EncounterID" AUTOINCREMENT),
+        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName")
     )

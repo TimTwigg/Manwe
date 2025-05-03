@@ -4,7 +4,9 @@ SELECT
     EntityID,
     Name,
     Description,
-    coalesce(IsRegional, '') as IsRegional
+    coalesce(IsRegional, '') as IsRegional,
+    Domain,
+    Published
 FROM
     SuperAction
 WHERE
