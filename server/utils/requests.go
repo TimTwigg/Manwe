@@ -3,6 +3,7 @@ package server_utils
 import (
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func EnableCORS(w *http.ResponseWriter) {
@@ -24,4 +25,15 @@ func GetDetailLevel(r *http.Request) (int, error) {
 		detail = d
 	}
 	return detail, nil
+}
+
+func ErrorStatus(err error) int {
+	if err != nil {
+		if strings.HasPrefix(err.Error(), "ParseError") {
+			return http.StatusInternalServerError
+		} else {
+			return http.StatusNotFound
+		}
+	}
+	return http.StatusOK
 }

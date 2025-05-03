@@ -43,7 +43,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 		case 1:
 			encounter, err := assets.ReadEncounterOverviewByAccessType(accessType, accessor)
 			if err != nil {
-				http.Error(w, "Encounter not found", http.StatusNotFound)
+				http.Error(w, "Encounter not found", server_utils.ErrorStatus(err))
 				return
 			}
 			w.Header().Set("Content-Type", "application/json")
@@ -55,7 +55,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 		case 2:
 			encounter, err := assets.ReadEncounterByAccessType(accessType, accessor)
 			if err != nil {
-				http.Error(w, "Encounter not found", http.StatusNotFound)
+				http.Error(w, "Encounter not found", server_utils.ErrorStatus(err))
 				return
 			}
 			w.Header().Set("Content-Type", "application/json")

@@ -17,12 +17,6 @@ CREATE TABLE
         "SSwim" INTEGER NOT NULL DEFAULT 0 CHECK ("SSwim" >= 0),
         "SBurrow" INTEGER NOT NULL DEFAULT 0 CHECK ("SBurrow" >= 0),
         "ReactionCount" INTEGER NOT NULL DEFAULT 1 CHECK ("ReactionCount" >= 0),
-        "Strength" INTEGER NOT NULL CHECK ("Strength" > 0),
-        "Dexterity" INTEGER NOT NULL CHECK ("Dexterity" > 0),
-        "Constitution" INTEGER NOT NULL CHECK ("Constitution" > 0),
-        "Intelligence" INTEGER NOT NULL CHECK ("Intelligence" > 0),
-        "Wisdom" INTEGER NOT NULL CHECK ("Wisdom" > 0),
-        "Charisma" INTEGER NOT NULL CHECK ("Charisma" > 0),
         "ArmorType" TEXT NOT NULL,
         "RecordSource" TEXT NOT NULL,
         "Domain" TEXT NOT NULL DEFAULT 'Private',
@@ -31,5 +25,5 @@ CREATE TABLE
         FOREIGN KEY ("Size") REFERENCES "Size" ("Size"),
         FOREIGN KEY ("Type") REFERENCES "EntityType" ("EntityType"),
         FOREIGN KEY ("RecordSource") REFERENCES "RecordSource" ("RecordSource"),
-        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName")
+        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName") ON DELETE CASCADE ON UPDATE CASCADE
     )

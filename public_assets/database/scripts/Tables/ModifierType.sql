@@ -5,5 +5,5 @@ CREATE TABLE
         "Domain" TEXT NOT NULL DEFAULT 'Private',
         "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),
         PRIMARY KEY ("ModifierType"),
-        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName")
+        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName") ON DELETE CASCADE ON UPDATE CASCADE
     );

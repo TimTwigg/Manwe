@@ -7,42 +7,22 @@ import (
 	actions "github.com/TimTwigg/EncounterManagerBackend/types/actions"
 	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
 	stat_blocks "github.com/TimTwigg/EncounterManagerBackend/types/stat_blocks"
+	error_utils "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 	errors "github.com/pkg/errors"
 )
 
-// Read a stat block from database
-func ReadStatBlock(name string) (stat_blocks.StatBlock, error) {
-	if asset_utils.StatBlockExists(name) {
-		data, err := asset_utils.ReadAsset(name, "stat_blocks")
-		if err != nil {
-			logger.Error("Error reading stat block: " + name + ": " + err.Error())
-			return stat_blocks.StatBlock{}, err
-		}
-		statblock, err := stat_blocks.ParseStatBlockData(data)
-		if err != nil {
-			return stat_blocks.StatBlock{}, err
-		}
-		return statblock.(stat_blocks.StatBlock), nil
-	} else {
-		logger.Error("StatBlock " + name + " Not Found")
-	}
-	return stat_blocks.StatBlock{}, nil
-}
-
 func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	// Read Entity information
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT * FROM Entity WHERE EntityID = ?", id)
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, ChallengeRating, ProficiencyBonus, Source, Size, Type, Alignment, ArmorClass, HitPoints1, HitPoints2, SWalk, SFly, SClimb, SSwim, SBurrow, ReactionCount, ArmorType FROM Entity WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, err
 	}
 	defer rows.Close()
-	var t int
 	var block stat_blocks.StatBlock
 	if rows.Next() {
 		if err := rows.Scan(
-			&t,
 			&block.Name,
 			&block.ChallengeRating,
 			&block.ProficiencyBonus,
@@ -59,16 +39,10 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 			&block.Stats.Speed.Swim,
 			&block.Stats.Speed.Burrow,
 			&block.Stats.ReactionCount,
-			&block.Stats.Strength,
-			&block.Stats.Dexterity,
-			&block.Stats.Constitution,
-			&block.Stats.Intelligence,
-			&block.Stats.Wisdom,
-			&block.Stats.Charisma,
 			&block.Details.ArmorType,
 		); err != nil {
 			logger.Error("Error Scanning Entity Row: " + err.Error())
-			return stat_blocks.StatBlock{}, err
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 	} else {
 		logger.Error("No stat block found with id: " + strconv.Itoa(id))
@@ -86,15 +60,37 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	block.Details.Traits = make([]generics.SimpleItem, 0)
 	block.Details.Languages.Languages = make([]string, 0)
 	block.Details.Languages.Note = ""
+	block.Stats.Abilities = make([]generics.NumericalItem, 0)
 	block.Actions = make([]actions.Action, 0)
 	block.BonusActions = make([]generics.SimpleItem, 0)
 	block.Reactions = make([]generics.SimpleItem, 0)
 
-	// Read Modifiers
-	mod_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Name, Value, Description FROM ModifierV WHERE EntityID = ?", id)
+	// Read Abilities
+	ability_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Ability, Value FROM EntityStats WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return stat_blocks.StatBlock{}, err
+		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
+	}
+	defer ability_rows.Close()
+	for ability_rows.Next() {
+		var Ability string
+		var Value int
+		if err := ability_rows.Scan(
+			&Ability,
+			&Value,
+		); err != nil {
+			logger.Error("Error Scanning Ability Row: " + err.Error())
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
+		}
+		// Add to StatBlock
+		block.Stats.Abilities = append(block.Stats.Abilities, generics.NumericalItem{Name: Ability, Modifier: Value})
+	}
+
+	// Read Modifiers
+	mod_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Name, Value, Description FROM Modifiers WHERE EntityID = ?", id)
+	if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 	}
 	defer mod_rows.Close()
 	// Read row from Modifiers table
@@ -110,7 +106,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 			&Description,
 		); err != nil {
 			logger.Error("Error Scanning Modifier Row: " + err.Error())
-			return stat_blocks.StatBlock{}, err
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 
 		// Add to StatBlock
@@ -137,10 +133,10 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	}
 
 	// Read Languages
-	lang_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Language, Description FROM SpokenLanguageV WHERE EntityID = ?", id)
+	lang_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Language, Description FROM SpokenLanguage WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return stat_blocks.StatBlock{}, err
+		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 	}
 	defer lang_rows.Close()
 	// Read row from Languages table
@@ -152,7 +148,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 			&Note,
 		); err != nil {
 			logger.Error("Error Scanning Language Row: " + err.Error())
-			return stat_blocks.StatBlock{}, err
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 
 		// Add to StatBlock
@@ -165,10 +161,10 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	}
 
 	// Read Actions
-	action_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT ActionID, Name, AttackType, HitModifier, Reach, Targets, Description FROM ActionV WHERE EntityID = ?", id)
+	action_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT ActionID, Name, AttackType, HitModifier, Reach, Targets, Description FROM Action WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return stat_blocks.StatBlock{}, err
+		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 	}
 	defer action_rows.Close()
 	// Read row from Actions table
@@ -190,16 +186,16 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 			&Description,
 		); err != nil {
 			logger.Error("Error Scanning Action Row: " + err.Error())
-			return stat_blocks.StatBlock{}, err
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 
 		var action = actions.Action{Name: Name, AttackType: AttackType, ToHitModifier: HitModifier, Reach: Reach, Targets: Targets, AdditionalDescription: Description}
 
 		// Create Damage array
-		dmg_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Amount, Type, AltDmgActive, Amount2, Type2, AltDmgNote, SaveDmgActive, Ability, DC, HalfDamage, SaveDmgNote FROM ActionDamageV WHERE EntityID = ? and ActionID = ?", id, ActionID)
+		dmg_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Amount, Type, AltDmgActive, Amount2, Type2, AltDmgNote, SaveDmgActive, Ability, DC, HalfDamage, SaveDmgNote FROM ActionDamage WHERE EntityID = ? and ActionID = ?", id, ActionID)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
-			return stat_blocks.StatBlock{}, err
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 		defer dmg_rows.Close()
 		for dmg_rows.Next() {
@@ -228,7 +224,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 				&SaveDmgNote,
 			); err != nil {
 				logger.Error("Error Scanning Action Damage Row: " + err.Error())
-				return stat_blocks.StatBlock{}, err
+				return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 			}
 
 			// Check if AltDmgActive is true
@@ -271,7 +267,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	simple_actions_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Name, Description FROM SimpleAction WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return stat_blocks.StatBlock{}, err
+		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 	}
 	defer simple_actions_rows.Close()
 	// Read row from SimpleActions table
@@ -285,7 +281,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 			&Description,
 		); err != nil {
 			logger.Error("Error Scanning Simple Action Row: " + err.Error())
-			return stat_blocks.StatBlock{}, err
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 		// Add to StatBlock
 		switch Type {
@@ -302,7 +298,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	super_hdr_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Description, Points FROM SuperActionHV WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return stat_blocks.StatBlock{}, err
+		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 	}
 	defer super_hdr_rows.Close()
 	// Read row from LegendaryActions table
@@ -316,7 +312,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 			&HPoints,
 		); err != nil {
 			logger.Error("Error Scanning Super Action Header Row: " + err.Error())
-			return stat_blocks.StatBlock{}, err
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 
 		// Add to StatBlock
@@ -333,7 +329,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 		super_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, Points FROM SuperActionV WHERE EntityID = ? and Type = ?", id, HType)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
-			return stat_blocks.StatBlock{}, err
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 		defer super_rows.Close()
 		// Read row from SuperActions table
@@ -347,7 +343,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 				&Points,
 			); err != nil {
 				logger.Error("Error Scanning Super Action Row: " + err.Error())
-				return stat_blocks.StatBlock{}, err
+				return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 			}
 			// Add to StatBlock
 			switch HType {
@@ -365,7 +361,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	lair_row, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Description, Initiative FROM Lair WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return stat_blocks.StatBlock{}, err
+		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 	}
 	defer lair_row.Close()
 	// Read row from Lair table
@@ -377,7 +373,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 			&Initiative,
 		); err != nil {
 			logger.Error("Error Scanning Lair Row: " + err.Error())
-			return stat_blocks.StatBlock{}, err
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 		block.Lair = stat_blocks.Lair{Name: block.Name, Description: Description, Initiative: Initiative, Actions: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}, RegionalEffects: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}}
 
@@ -385,7 +381,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 		lair_actions_row, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, IsRegional FROM LairActionV WHERE EntityID = ?", id)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
-			return stat_blocks.StatBlock{}, err
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 		defer lair_actions_row.Close()
 		// Read row from LairActions table
@@ -399,7 +395,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 				&IsRegional,
 			); err != nil {
 				logger.Error("Error Scanning Lair Action Row: " + err.Error())
-				return stat_blocks.StatBlock{}, err
+				return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 			}
 			// Add to StatBlock
 			if Name == "X" {
@@ -426,7 +422,7 @@ func ReadStatBlockByName(name string) (stat_blocks.StatBlock, error) {
 	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID FROM Entity WHERE name = ?", name)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return stat_blocks.StatBlock{}, err
+		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 	}
 	defer rows.Close()
 	var id int
@@ -435,7 +431,7 @@ func ReadStatBlockByName(name string) (stat_blocks.StatBlock, error) {
 			&id,
 		); err != nil {
 			logger.Error("Error Scanning Row: " + err.Error())
-			return stat_blocks.StatBlock{}, err
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 	} else {
 		logger.Error("No stat block found with name: " + name)
@@ -444,11 +440,11 @@ func ReadStatBlockByName(name string) (stat_blocks.StatBlock, error) {
 	return ReadStatBlockByID(id)
 }
 
-func ReadStatBlockOverviewFromDB(name string) (stat_blocks.StatBlockOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT * FROM EntityOverviewV WHERE name = ?", name)
+func ReadStatBlockOverview(name string) (stat_blocks.StatBlockOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Type, Size, ChallengeRating, Source FROM Entity WHERE name = ?", name)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return stat_blocks.StatBlockOverview{}, err
+		return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
 	}
 	defer rows.Close()
 	var Name string
@@ -465,7 +461,7 @@ func ReadStatBlockOverviewFromDB(name string) (stat_blocks.StatBlockOverview, er
 			&Source,
 		); err != nil {
 			logger.Error("Error Scanning Entity Row: " + err.Error())
-			return stat_blocks.StatBlockOverview{}, err
+			return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
 		}
 	} else {
 		logger.Error("No stat block found with name: " + name)

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	assets "github.com/TimTwigg/EncounterManagerBackend/assets"
+	server_utils "github.com/TimTwigg/EncounterManagerBackend/server/utils"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
@@ -35,9 +36,9 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 		switch detail {
 		case 1:
 			// Read the statblock overview from the database
-			statBlockOverview, err := assets.ReadStatBlockOverviewFromDB(name)
+			statBlockOverview, err := assets.ReadStatBlockOverview(name)
 			if err != nil {
-				http.Error(w, "StatBlock not found", http.StatusNotFound)
+				http.Error(w, "StatBlock not found", server_utils.ErrorStatus(err))
 				return
 			}
 			w.Header().Set("Content-Type", "application/json")
@@ -50,7 +51,7 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 			// Read the statblock from the database
 			statBlock, err := assets.ReadStatBlockByName(name)
 			if err != nil {
-				http.Error(w, "StatBlock not found", http.StatusNotFound)
+				http.Error(w, "StatBlock not found", server_utils.ErrorStatus(err))
 				return
 			}
 			w.Header().Set("Content-Type", "application/json")

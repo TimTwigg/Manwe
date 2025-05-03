@@ -17,5 +17,5 @@ CREATE TABLE
         PRIMARY KEY ("EncounterID", "RowID"),
         FOREIGN KEY ("EncounterID") REFERENCES "Encounter" ("EncounterID") ON DELETE CASCADE,
         FOREIGN KEY ("EntityID") REFERENCES "Entity" ("EntityID"),
-        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName")
+        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName") ON DELETE CASCADE ON UPDATE CASCADE
     )

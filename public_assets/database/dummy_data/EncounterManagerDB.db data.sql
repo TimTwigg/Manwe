@@ -1,6 +1,17 @@
 BEGIN TRANSACTION;
 
-PRAGMA foreign_keys = OFF;
+INSERT
+OR IGNORE INTO "User" ("UserName")
+VALUES
+    ('Public'),
+    ('Private');
+
+INSERT
+OR IGNORE INTO "RecordSource" ("RecordSource")
+VALUES
+    ('Statblock'),
+    ('Player'),
+    ('Custom');
 
 INSERT
 OR IGNORE INTO "Ability" ("Ability")
@@ -60,9 +71,16 @@ VALUES
     ('Undead');
 
 INSERT
-OR IGNORE INTO "User" ("UserName")
+OR IGNORE INTO "ModifierType" ("ModifierType", "Description")
 VALUES
-    ('Public');
+    ('DR', 'Damage Resistance'),
+    ('DV', 'Damage Vulnerability'),
+    ('DI', 'Damage Immunity'),
+    ('CI', 'Condition Immunity'),
+    ('SK', 'Skill'),
+    ('ST', 'Saving Throw'),
+    ('SE', 'Sense'),
+    ('TR', 'Trait');
 
 INSERT
 OR IGNORE INTO "Entity" (
@@ -83,12 +101,6 @@ OR IGNORE INTO "Entity" (
     "SSwim",
     "SBurrow",
     "ReactionCount",
-    "Strength",
-    "Dexterity",
-    "Constitution",
-    "Intelligence",
-    "Wisdom",
-    "Charisma",
     "ArmorType",
     "RecordSource"
 )
@@ -111,15 +123,19 @@ VALUES
         0,
         0,
         1,
-        13,
-        15,
-        10,
-        7,
-        10,
-        6,
         'Natural Armor',
         'Statblock'
     );
+
+INSERT
+OR IGNORE INTO "EntityStats" ("EntityID", "Ability", "Value")
+VALUES
+    (1, 'Strength', 13),
+    (1, 'Dexterity', 15),
+    (1, 'Constitution', 10),
+    (1, 'Intelligence', 7),
+    (1, 'Wisdom', 10),
+    (1, 'Charisma', 6);
 
 INSERT
 OR IGNORE INTO "Action" (
@@ -206,11 +222,6 @@ VALUES
     );
 
 INSERT
-OR IGNORE INTO "EncEntConditions" ("EncounterID", "RowID", "Condition", "Duration")
-VALUES
-    (1, 1, 'Stunned', 1);
-
-INSERT
 OR IGNORE INTO "Encounter" (
     "EncounterID",
     "Name",
@@ -287,21 +298,14 @@ VALUES
     );
 
 INSERT
+OR IGNORE INTO "EncEntConditions" ("EncounterID", "RowID", "Condition", "Duration")
+VALUES
+    (1, 1, 'Stunned', 1);
+
+INSERT
 OR IGNORE INTO "Lair" ("EntityID", "Description", "Initiative")
 VALUES
     (1, 'Ghoul lives in lair', 20);
-
-INSERT
-OR IGNORE INTO "ModifierType" ("ModifierType", "Description")
-VALUES
-    ('DR', 'Damage Resistance'),
-    ('DV', 'Damage Vulnerability'),
-    ('DI', 'Damage Immunity'),
-    ('CI', 'Condition Immunity'),
-    ('SK', 'Skill'),
-    ('ST', 'Saving Throw'),
-    ('SE', 'Sense'),
-    ('TR', 'Trait');
 
 INSERT
 OR IGNORE INTO "Modifiers" (
@@ -326,13 +330,6 @@ VALUES
         'The ghoul has advantage on Dexterity (Stealth) checks made to hide in snowy terrain.'
     ),
     (1, 6, 'ST', 'Strength', 4, NULL);
-
-INSERT
-OR IGNORE INTO "RecordSource" ("RecordSource")
-VALUES
-    ('Statblock'),
-    ('Player'),
-    ('Custom');
 
 INSERT
 OR IGNORE INTO "SimpleAction" (
@@ -427,8 +424,6 @@ VALUES
         NULL
     ),
     (1, 4, 'Lair', 'X', 'Ghoul''s home is bad', 0, 'X');
-
-PRAGMA foreign_keys = ON;
 
 COMMIT;
 

@@ -7,5 +7,5 @@ CREATE TABLE
         "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),
         PRIMARY KEY ("EffectID", "Condition"),
         FOREIGN KEY ("Condition") REFERENCES "Condition" ("Condition"),
-        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName")
+        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName") ON DELETE CASCADE ON UPDATE CASCADE
     )

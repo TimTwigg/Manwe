@@ -13,7 +13,6 @@ type EncounterMetadata struct {
 
 func (m EncounterMetadata) Dict() map[string]any {
 	return map[string]any{
-		"data_type":    "EncounterMetadata",
 		"CreationDate": m.CreationDate,
 		"AccessedDate": m.AccessedDate,
 		"Campaign":     m.Campaign,

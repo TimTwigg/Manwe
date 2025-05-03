@@ -10,22 +10,7 @@ import (
 	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
 	routes "github.com/TimTwigg/EncounterManagerBackend/server"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
-	validate "github.com/TimTwigg/EncounterManagerBackend/utils/validation"
 )
-
-func init() {
-	logger.Info("Fully initialized!")
-}
-
-func Validate() {
-	assetPath := "./assets"
-	hideOutput := true
-	validate.ValidateStatBlocks(assetPath, hideOutput)
-	validate.ValidateLanguage(assetPath, hideOutput)
-	validate.ValidateDamageTypes(assetPath, hideOutput)
-	validate.ValidateConditions(assetPath, hideOutput)
-	logger.Info("Validation complete!")
-}
 
 func cleanup() {
 	asset_utils.CloseDB(asset_utils.DB)

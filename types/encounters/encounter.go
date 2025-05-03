@@ -19,7 +19,6 @@ type Encounter struct {
 
 func (e Encounter) Dict() map[string]interface{} {
 	return map[string]interface{}{
-		"data_type":   "Encounter",
 		"ID":          e.ID,
 		"Name":        e.Name,
 		"Description": e.Description,
@@ -38,7 +37,6 @@ type EncounterOverview struct {
 
 func (eo EncounterOverview) Dict() map[string]interface{} {
 	return map[string]interface{}{
-		"data_type":   "EncounterOverview",
 		"ID":          eo.ID,
 		"Name":        eo.Name,
 		"Description": eo.Description,
