@@ -13,7 +13,7 @@ import (
 )
 
 func ReadEncounterByID(id int) (encounters.Encounter, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT * FROM Encounter WHERE EncounterID = ?", id)
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairEntityName, ActiveID FROM Encounter WHERE EncounterID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
