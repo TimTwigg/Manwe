@@ -4,6 +4,7 @@
     - DB allows, but parsing needs to handle this
 - Pagination in api calls
 - Rework so that stats are not hardcoded - allow custom stats and saving throws
+    - Think this is done - review
 - How to handle entities in encounter being non-statblocks (ie players or temp npcs)
 
 # Database Design
