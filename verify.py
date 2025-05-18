@@ -7,6 +7,12 @@ assert res.status == 200, f"Error /statblock: {res.status}"
 data = json.loads(res.read().decode("utf-8"))
 assert data["Name"] == "Winter Ghoul", f"Error /statblock: {data['Name']}"
 
+print("[TEST] /statblock/all")
+res = request.urlopen("http://localhost:8080/statblock/all")
+assert res.status == 200, f"Error /statblock/all: {res.status}"
+data = json.loads(res.read().decode("utf-8"))
+assert len(data) > 0, f"Error /statblock/all: {len(data)}"
+
 print("[TEST] /encounter")
 res = request.urlopen("http://localhost:8080/encounter?name=Encounter+1")
 assert res.status == 200, f"Error /encounter: {res.status}"

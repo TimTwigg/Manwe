@@ -1,6 +1,7 @@
 package stat_blocks
 
 type StatBlockOverview struct {
+	ID              string
 	Name            string
 	Type            string
 	Size            string
@@ -10,6 +11,7 @@ type StatBlockOverview struct {
 
 func (sbo StatBlockOverview) Dict() map[string]any {
 	return map[string]any{
+		"ID":              sbo.ID,
 		"Name":            sbo.Name,
 		"Type":            sbo.Type,
 		"Size":            sbo.Size,

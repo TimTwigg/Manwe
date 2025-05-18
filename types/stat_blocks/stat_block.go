@@ -6,6 +6,7 @@ import (
 )
 
 type StatBlock struct {
+	ID                  int
 	Name                string
 	ChallengeRating     float32
 	ProficiencyBonus    int
@@ -25,6 +26,7 @@ type StatBlock struct {
 
 func (sb StatBlock) Dict() map[string]any {
 	return map[string]any{
+		"ID":                  sb.ID,
 		"Name":                sb.Name,
 		"ChallengeRating":     sb.ChallengeRating,
 		"ProficiencyBonus":    sb.ProficiencyBonus,

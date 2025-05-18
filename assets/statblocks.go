@@ -14,7 +14,7 @@ import (
 
 func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	// Read Entity information
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, ChallengeRating, ProficiencyBonus, Source, Size, Type, Alignment, ArmorClass, HitPoints1, HitPoints2, SWalk, SFly, SClimb, SSwim, SBurrow, ArmorType FROM Entity WHERE EntityID = ?", id)
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, ChallengeRating, ProficiencyBonus, Source, Size, Type, Alignment, ArmorClass, HitPoints1, HitPoints2, SWalk, SFly, SClimb, SSwim, SBurrow, ArmorType FROM Entity WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, err
@@ -23,6 +23,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	var block stat_blocks.StatBlock
 	if rows.Next() {
 		if err := rows.Scan(
+			&block.ID,
 			&block.Name,
 			&block.ChallengeRating,
 			&block.ProficiencyBonus,
@@ -471,27 +472,48 @@ func ReadStatBlockByName(name string) (stat_blocks.StatBlock, error) {
 	return ReadStatBlockByID(id)
 }
 
-func ReadStatBlockOverview(name string) (stat_blocks.StatBlockOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Type, Size, ChallengeRating, Source FROM Entity WHERE name = ?", name)
+func ReadStatBlockOverviewByID(id int) (stat_blocks.StatBlockOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, Type, Size, ChallengeRating, Source FROM Entity WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
 	}
 	defer rows.Close()
-	var Name string
-	var Type string
-	var Size string
-	var CR int
-	var Source string
+	var block stat_blocks.StatBlockOverview
 	if rows.Next() {
 		if err := rows.Scan(
-			&Name,
-			&Type,
-			&Size,
-			&CR,
-			&Source,
+			&block.ID,
+			&block.Name,
+			&block.Type,
+			&block.Size,
+			&block.ChallengeRating,
+			&block.Source,
 		); err != nil {
 			logger.Error("Error Scanning Entity Row: " + err.Error())
+			return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
+		}
+	} else {
+		logger.Error("No stat block found with id: " + strconv.Itoa(id))
+		return stat_blocks.StatBlockOverview{}, errors.New("No stat block found with id: " + strconv.Itoa(id))
+	}
+
+	return block, nil
+}
+
+func ReadStatBlockOverviewByName(name string) (stat_blocks.StatBlockOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID FROM Entity WHERE name = ?", name)
+	if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
+	}
+
+	defer rows.Close()
+	var id int
+	if rows.Next() {
+		if err := rows.Scan(
+			&id,
+		); err != nil {
+			logger.Error("Error Scanning Row: " + err.Error())
 			return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
 		}
 	} else {
@@ -499,11 +521,70 @@ func ReadStatBlockOverview(name string) (stat_blocks.StatBlockOverview, error) {
 		return stat_blocks.StatBlockOverview{}, errors.New("No stat block found with name: " + name)
 	}
 
-	return stat_blocks.StatBlockOverview{
-		Name:            Name,
-		Type:            Type,
-		Size:            Size,
-		ChallengeRating: CR,
-		Source:          Source,
-	}, nil
+	return ReadStatBlockOverviewByID(id)
+}
+
+func ReadAllStatBlockOverviews() ([]stat_blocks.StatBlockOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, Type, Size, ChallengeRating, Source FROM Entity")
+	if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return nil, error_utils.ParseError{Message: err.Error()}
+	}
+	defer rows.Close()
+	var statblocks []stat_blocks.StatBlockOverview
+	for rows.Next() {
+		var ID string
+		var Name string
+		var Type string
+		var Size string
+		var CR int
+		var Source string
+		if err := rows.Scan(
+			&ID,
+			&Name,
+			&Type,
+			&Size,
+			&CR,
+			&Source,
+		); err != nil {
+			logger.Error("Error Scanning Entity Row: " + err.Error())
+			return nil, error_utils.ParseError{Message: err.Error()}
+		}
+		statblocks = append(statblocks, stat_blocks.StatBlockOverview{ID: ID, Name: Name, Type: Type, Size: Size, ChallengeRating: CR, Source: Source})
+	}
+	return statblocks, nil
+}
+
+func ReadStatBlockByAccessType(accessType string, accessor string) (stat_blocks.StatBlock, error) {
+	switch accessType {
+	case "id":
+		id, err := strconv.Atoi(accessor)
+		if err != nil {
+			logger.Error("Error converting id to int: " + err.Error())
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
+		}
+		return ReadStatBlockByID(id)
+	case "name":
+		return ReadStatBlockByName(accessor)
+	default:
+		logger.Error("Invalid access type: " + accessType)
+		return stat_blocks.StatBlock{}, errors.New("Invalid access type: " + accessType)
+	}
+}
+
+func ReadStatBlockOverviewByAccessType(accessType string, accessor string) (stat_blocks.StatBlockOverview, error) {
+	switch accessType {
+	case "id":
+		id, err := strconv.Atoi(accessor)
+		if err != nil {
+			logger.Error("Error converting id to int: " + err.Error())
+			return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
+		}
+		return ReadStatBlockOverviewByID(id)
+	case "name":
+		return ReadStatBlockOverviewByName(accessor)
+	default:
+		logger.Error("Invalid access type: " + accessType)
+		return stat_blocks.StatBlockOverview{}, errors.New("Invalid access type: " + accessType)
+	}
 }

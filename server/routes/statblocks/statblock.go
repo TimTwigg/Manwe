@@ -17,12 +17,20 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	case http.MethodGet:
 		logger.GetRequest("StatBlockHandler: GET request")
-		// Check if the request has a name parameter
-		name := r.URL.Query().Get("name")
-		if name == "" {
-			http.Error(w, "StatBlock name is required", http.StatusBadRequest)
-			return
+
+		var accessType string = "id"
+		var accessor string = ""
+
+		accessor = r.URL.Query().Get("id")
+		if accessor == "" {
+			accessType = "name"
+			accessor = r.URL.Query().Get("name")
+			if accessor == "" {
+				http.Error(w, "Encounter id or name is required", http.StatusBadRequest)
+				return
+			}
 		}
+
 		detail_level := r.URL.Query().Get("detail_level")
 		var detail int = 1
 		if detail_level != "" {
@@ -34,12 +42,12 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 			detail = d
 		}
 
-		logger.Info("Requesting StatBlock: (" + name + ") with Detail Level: (" + strconv.Itoa(detail) + ")")
+		logger.Info("Requesting StatBlock: (" + accessType + ": " + accessor + ") with Detail Level: (" + strconv.Itoa(detail) + ")")
 
 		switch detail {
 		case 1:
 			// Read the statblock overview from the database
-			statBlockOverview, err := assets.ReadStatBlockOverview(name)
+			statBlockOverview, err := assets.ReadStatBlockOverviewByAccessType(accessType, accessor)
 			if err != nil {
 				http.Error(w, "StatBlock not found", server_utils.ErrorStatus(err))
 				return
@@ -52,7 +60,7 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		case 2:
 			// Read the statblock from the database
-			statBlock, err := assets.ReadStatBlockByName(name)
+			statBlock, err := assets.ReadStatBlockByAccessType(accessType, accessor)
 			if err != nil {
 				http.Error(w, "StatBlock not found", server_utils.ErrorStatus(err))
 				return
