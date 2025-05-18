@@ -18,8 +18,8 @@ func (d LanguageInfo) Dict() map[string]any {
 
 type DetailBlock struct {
 	ArmorType    string
-	Skills       []generics.NumericalItem
-	SavingThrows []generics.NumericalItem
+	Skills       []generics.ProficiencyItem
+	SavingThrows []generics.ProficiencyItem
 	Senses       []generics.NumericalItem
 	Languages    LanguageInfo
 	Traits       []generics.SimpleItem

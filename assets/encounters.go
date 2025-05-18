@@ -29,7 +29,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 	if rows.Next() {
 		var CreationDate, AccessedDate, Started, HasLair string
 		if err := rows.Scan(
-			&id,
+			&encounter.ID,
 			&encounter.Name,
 			&encounter.Description,
 			&CreationDate,
@@ -54,7 +54,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 		return encounters.Encounter{}, errors.New("No Encounter found with id: " + strconv.Itoa(id))
 	}
 
-	entity_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Notes, IsHostile, EncounterLocked FROM EncounterEntities WHERE EncounterID = ?", id)
+	entity_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Notes, IsHostile, EncounterLocked, ID FROM EncounterEntities WHERE EncounterID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
@@ -62,7 +62,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 	defer entity_rows.Close()
 	for entity_rows.Next() {
 		var rowID, entityID, initiative, maxHitPoints, tempHitPoints, currentHitPoints, armorClassBonus int
-		var suffix, notes, isHostile, encounterLocked string
+		var suffix, notes, isHostile, encounterLocked, ID string
 
 		if err := entity_rows.Scan(
 			&rowID,
@@ -76,6 +76,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 			&notes,
 			&isHostile,
 			&encounterLocked,
+			&ID,
 		); err != nil {
 			logger.Error("Error Scanning Encounter Entity Row: " + err.Error())
 			return encounters.Encounter{}, err
@@ -88,6 +89,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 		}
 
 		entity := entities.Entity{
+			ID:               ID,
 			Name:             statblock.Name,
 			Suffix:           suffix,
 			Initiative:       initiative,
@@ -262,8 +264,7 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 	if encounter.ID == 0 {
 		res, err := asset_utils.ExecSQL(
 			asset_utils.DB,
-			"INSERT INTO Encounter (Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairEntityName, ActiveID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-			encounter.ID,
+			"INSERT INTO Encounter (Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairEntityName, ActiveID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 			encounter.Name,
 			encounter.Description,
 			utils.FormatDate(encounter.Metadata.CreationDate),

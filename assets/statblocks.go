@@ -14,7 +14,7 @@ import (
 
 func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	// Read Entity information
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, ChallengeRating, ProficiencyBonus, Source, Size, Type, Alignment, ArmorClass, HitPoints1, HitPoints2, SWalk, SFly, SClimb, SSwim, SBurrow, ReactionCount, ArmorType FROM Entity WHERE EntityID = ?", id)
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, ChallengeRating, ProficiencyBonus, Source, Size, Type, Alignment, ArmorClass, HitPoints1, HitPoints2, SWalk, SFly, SClimb, SSwim, SBurrow, ArmorType FROM Entity WHERE EntityID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, err
@@ -38,7 +38,6 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 			&block.Stats.Speed.Climb,
 			&block.Stats.Speed.Swim,
 			&block.Stats.Speed.Burrow,
-			&block.Stats.ReactionCount,
 			&block.Details.ArmorType,
 		); err != nil {
 			logger.Error("Error Scanning Entity Row: " + err.Error())
@@ -55,15 +54,14 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	block.DamageModifiers.Vulnerabilities = make([]string, 0)
 	block.ConditionImmunities = make([]string, 0)
 	block.Details.Senses = make([]generics.NumericalItem, 0)
-	block.Details.Skills = make([]generics.NumericalItem, 0)
-	block.Details.SavingThrows = make([]generics.NumericalItem, 0)
+	block.Details.Skills = make([]generics.ProficiencyItem, 0)
+	block.Details.SavingThrows = make([]generics.ProficiencyItem, 0)
 	block.Details.Traits = make([]generics.SimpleItem, 0)
 	block.Details.Languages.Languages = make([]string, 0)
 	block.Details.Languages.Note = ""
-	block.Stats.Abilities = make([]generics.NumericalItem, 0)
+	block.Stats.Abilities = make(map[string]int, 0)
 	block.Actions = make([]actions.Action, 0)
 	block.BonusActions = make([]generics.SimpleItem, 0)
-	block.Reactions = make([]generics.SimpleItem, 0)
 
 	// Read Abilities
 	ability_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Ability, Value FROM EntityStats WHERE EntityID = ?", id)
@@ -72,6 +70,7 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 	}
 	defer ability_rows.Close()
+	abilities := map[string]int{"Strength": 10, "Dexterity": 10, "Constitution": 10, "Wisdom": 10, "Charisma": 10, "Intelligence": 10}
 	for ability_rows.Next() {
 		var Ability string
 		var Value int
@@ -82,8 +81,11 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 			logger.Error("Error Scanning Ability Row: " + err.Error())
 			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
+		abilities[Ability] = Value
+	}
+	for ability, Value := range abilities {
 		// Add to StatBlock
-		block.Stats.Abilities = append(block.Stats.Abilities, generics.NumericalItem{Name: Ability, Modifier: Value})
+		block.Stats.Abilities[ability] = Value
 	}
 
 	// Read Modifiers
@@ -119,16 +121,45 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 			block.DamageModifiers.Vulnerabilities = append(block.DamageModifiers.Vulnerabilities, Name)
 		case "CI":
 			block.ConditionImmunities = append(block.ConditionImmunities, Name)
-		case "SK":
-			block.Details.Skills = append(block.Details.Skills, generics.NumericalItem{Name: Name, Modifier: Value})
-		case "ST":
-			block.Details.SavingThrows = append(block.Details.SavingThrows, generics.NumericalItem{Name: Name, Modifier: Value})
 		case "SE":
 			block.Details.Senses = append(block.Details.Senses, generics.NumericalItem{Name: Name, Modifier: Value})
 		case "TR":
 			block.Details.Traits = append(block.Details.Traits, generics.SimpleItem{Name: Name, Description: Description})
 		default:
-			logger.Error("Unknown modifier type: " + ModType)
+			logger.Error("Unsupported modifier type: " + ModType)
+		}
+	}
+
+	// Read Proficiencies
+	prof_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Name, Level, Override FROM Proficiencies WHERE EntityID = ?", id)
+	if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
+	}
+	defer prof_rows.Close()
+	// Read row from Proficiencies table
+	for prof_rows.Next() {
+		var Type string
+		var Name string
+		var Level int
+		var Override int
+		if err := prof_rows.Scan(
+			&Type,
+			&Name,
+			&Level,
+			&Override,
+		); err != nil {
+			logger.Error("Error Scanning Proficiency Row: " + err.Error())
+			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
+		}
+		// Add to StatBlock
+		switch Type {
+		case "SK":
+			block.Details.Skills = append(block.Details.Skills, generics.ProficiencyItem{Name: Name, Level: Level, Override: Override})
+		case "ST":
+			block.Details.SavingThrows = append(block.Details.SavingThrows, generics.ProficiencyItem{Name: Name, Level: Level, Override: Override})
+		default:
+			logger.Error("Unsupported proficiency type: " + Type)
 		}
 	}
 

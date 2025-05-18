@@ -13,6 +13,9 @@ import (
 
 func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	case http.MethodOptions:
+		logger.OptionsRequest("EncounterHandler: OPTIONS request")
+		w.WriteHeader(http.StatusOK)
 	case http.MethodGet:
 		logger.GetRequest("EncounterHandler: GET request")
 		defer r.Body.Close()
@@ -87,7 +90,6 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(http.StatusOK)
 
 	default:
 		http.Error(w, "Method not supported", http.StatusMethodNotAllowed)

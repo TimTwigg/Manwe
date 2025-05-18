@@ -18,7 +18,7 @@ type SpellSlotLevel struct {
 }
 
 type Entity struct {
-	id               string
+	ID               string
 	Name             string
 	Suffix           string
 	Initiative       int
@@ -37,6 +37,6 @@ type Entity struct {
 	EncounterLocked  bool
 	Displayable      any
 	EntityType       EntityType
-	SavingThrows     []generics.NumericalItem
+	SavingThrows     []generics.ProficiencyItem
 	ChallengeRating  float32
 }

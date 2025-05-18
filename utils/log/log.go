@@ -9,8 +9,8 @@ var yellow = "\033[33m"
 var blue = "\033[34m"
 var cyan = "\033[36m"
 var magenta = "\033[35m"
+var gray = "\033[37m"
 
-//var gray = "\033[37m"
 //var white = "\033[97m"
 
 func Init(message any) {
@@ -35,4 +35,8 @@ func GetRequest(message any) {
 
 func PostRequest(message any) {
 	fmt.Printf("%s[POST]%s %v\n", magenta, reset, message)
+}
+
+func OptionsRequest(message any) {
+	fmt.Printf("%s[OPTIONS]%s %v\n", gray, reset, message)
 }

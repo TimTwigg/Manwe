@@ -1,11 +1,11 @@
 CREATE TABLE
-    "Modifiers" (
+    "Proficiencies" (
         "EntityID" INTEGER NOT NULL,
         "Item" INTEGER NOT NULL CHECK ("Item" >= 0),
-        "Type" TEXT NOT NULL CHECK ("Type" NOT IN ('SK', 'ST')),
+        "Type" TEXT NOT NULL CHECK ("Type" IN ('SK', 'ST')),
         "Name" TEXT NOT NULL,
-        "Value" INTEGER DEFAULT 0,
-        "Description" TEXT DEFAULT '',
+        "Level" INTEGER DEFAULT 0,
+        "Override" INTEGER DEFAULT 0,
         "Domain" TEXT NOT NULL DEFAULT 'Private',
         "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),
         PRIMARY KEY ("EntityID", "Item"),

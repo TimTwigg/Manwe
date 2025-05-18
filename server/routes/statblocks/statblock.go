@@ -12,6 +12,9 @@ import (
 
 func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	case http.MethodOptions:
+		logger.OptionsRequest("StatBlockHandler: OPTIONS request")
+		w.WriteHeader(http.StatusOK)
 	case http.MethodGet:
 		logger.GetRequest("StatBlockHandler: GET request")
 		// Check if the request has a name parameter

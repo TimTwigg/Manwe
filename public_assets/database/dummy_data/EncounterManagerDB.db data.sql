@@ -71,16 +71,20 @@ VALUES
     ('Undead');
 
 INSERT
-OR IGNORE INTO "ModifierType" ("ModifierType", "Description")
+OR IGNORE INTO "ModifierType" (
+    "ModifierType",
+    "Description",
+    "IsProficiencyRelevant"
+)
 VALUES
-    ('DR', 'Damage Resistance'),
-    ('DV', 'Damage Vulnerability'),
-    ('DI', 'Damage Immunity'),
-    ('CI', 'Condition Immunity'),
-    ('SK', 'Skill'),
-    ('ST', 'Saving Throw'),
-    ('SE', 'Sense'),
-    ('TR', 'Trait');
+    ('DR', 'Damage Resistance', ''),
+    ('DV', 'Damage Vulnerability', ''),
+    ('DI', 'Damage Immunity', ''),
+    ('CI', 'Condition Immunity', ''),
+    ('SK', 'Skill', 'X'),
+    ('ST', 'Saving Throw', 'X'),
+    ('SE', 'Sense', ''),
+    ('TR', 'Trait', '');
 
 INSERT
 OR IGNORE INTO "Entity" (
@@ -149,16 +153,7 @@ OR IGNORE INTO "Action" (
     "Description"
 )
 VALUES
-    (
-        1,
-        1,
-        'Bite',
-        'Melee Weapon Attack',
-        2,
-        5,
-        1,
-        NULL
-    ),
+    (1, 1, 'Bite', 'Melee Weapon Attack', 2, 5, 1, ''),
     (
         1,
         2,
@@ -194,15 +189,15 @@ VALUES
         1,
         '2d6 + 2',
         'Piercing',
-        NULL,
-        NULL,
         '',
-        NULL,
-        NULL,
         '',
-        NULL,
-        NULL,
-        NULL
+        '',
+        '',
+        '',
+        '',
+        0,
+        '',
+        ''
     ),
     (
         1,
@@ -210,15 +205,15 @@ VALUES
         1,
         '2d4 + 2',
         'Slashing',
-        NULL,
-        NULL,
         '',
-        NULL,
-        NULL,
         '',
-        NULL,
-        NULL,
-        NULL
+        '',
+        '',
+        '',
+        '',
+        0,
+        '',
+        ''
     );
 
 INSERT
@@ -265,7 +260,8 @@ OR IGNORE INTO "EncounterEntities" (
     "ArmorClassBonus",
     "Notes",
     "IsHostile",
-    "EncounterLocked"
+    "EncounterLocked",
+    "ID"
 )
 VALUES
     (
@@ -280,6 +276,7 @@ VALUES
         0,
         'Wounded Ghoul',
         'X',
+        '',
         ''
     ),
     (
@@ -294,7 +291,8 @@ VALUES
         -1,
         'Altered Ghoul',
         'X',
-        'X'
+        'X',
+        ''
     );
 
 INSERT
@@ -317,19 +315,30 @@ OR IGNORE INTO "Modifiers" (
     "Description"
 )
 VALUES
-    (1, 1, 'DI', 'Cold', NULL, NULL),
-    (1, 2, 'SK', 'Stealth', 4, NULL),
-    (1, 3, 'SE', 'Darkvision', 60, NULL),
-    (1, 4, 'SE', 'Passive Perception', 10, NULL),
+    (1, 1, 'DI', 'Cold', 0, ''),
+    (1, 2, 'SE', 'Darkvision', 60, ''),
+    (1, 3, 'SE', 'Passive Perception', 10, ''),
     (
         1,
-        5,
+        4,
         'TR',
         'Snow Camouflage',
-        NULL,
+        0,
         'The ghoul has advantage on Dexterity (Stealth) checks made to hide in snowy terrain.'
-    ),
-    (1, 6, 'ST', 'Strength', 4, NULL);
+    );
+
+INSERT
+OR IGNORE INTO "Proficiencies" (
+    "EntityID",
+    "Item",
+    "Type",
+    "Name",
+    "Level",
+    "Override"
+)
+VALUES
+    (1, 1, 'SK', 'Stealth', 1, 0),
+    (1, 2, 'ST', 'Strength', 1, 0);
 
 INSERT
 OR IGNORE INTO "SimpleAction" (
@@ -346,7 +355,7 @@ VALUES
 INSERT
 OR IGNORE INTO "SpokenLanguage" ("EntityID", "Language", "Description")
 VALUES
-    (1, 'Common', NULL);
+    (1, 'Common', '');
 
 INSERT
 OR IGNORE INTO "SuperAction" (
@@ -366,7 +375,7 @@ VALUES
         'X',
         'Ghoul has 2 legendary actions.',
         2,
-        NULL
+        ''
     ),
     (
         1,
@@ -375,9 +384,9 @@ VALUES
         'Claws',
         'Ghoul attacks with claws',
         1,
-        NULL
+        ''
     ),
-    (1, 3, 'Legendary', 'Bite', 'Ghoul Bites', 2, NULL),
+    (1, 3, 'Legendary', 'Bite', 'Ghoul Bites', 2, ''),
     (
         1,
         1,
@@ -385,7 +394,7 @@ VALUES
         'X',
         'If Ghoul is mythic, ghoul can use these as legendary actions',
         0,
-        NULL
+        ''
     ),
     (
         1,
@@ -394,7 +403,7 @@ VALUES
         'Claws',
         'Ghoul attacks twice with claws',
         1,
-        NULL
+        ''
     ),
     (
         1,
@@ -412,7 +421,7 @@ VALUES
         'Summon',
         'Ghoul summons allies',
         0,
-        NULL
+        ''
     ),
     (
         1,
@@ -421,7 +430,7 @@ VALUES
         'X',
         'Ghoul takes Lair Action',
         0,
-        NULL
+        ''
     ),
     (1, 4, 'Lair', 'X', 'Ghoul''s home is bad', 0, 'X');
 

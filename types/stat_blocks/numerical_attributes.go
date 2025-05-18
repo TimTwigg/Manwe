@@ -1,9 +1,5 @@
 package stat_blocks
 
-import (
-	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
-)
-
 type Speeds struct {
 	Walk   int
 	Fly    int
@@ -18,11 +14,10 @@ type HitPointsT struct {
 }
 
 type NumericalAttributes struct {
-	ArmorClass    int
-	HitPoints     HitPointsT
-	Speed         Speeds
-	ReactionCount int
-	Abilities     []generics.NumericalItem
+	ArmorClass int
+	HitPoints  HitPointsT
+	Speed      Speeds
+	Abilities  map[string]int
 }
 
 func (s Speeds) Dict() map[string]interface{} {
@@ -44,10 +39,9 @@ func (h HitPointsT) Dict() map[string]interface{} {
 
 func (n NumericalAttributes) Dict() map[string]interface{} {
 	return map[string]interface{}{
-		"ArmorClass":    n.ArmorClass,
-		"HitPoints":     n.HitPoints,
-		"Speed":         n.Speed,
-		"ReactionCount": n.ReactionCount,
-		"Abilities":     n.Abilities,
+		"ArmorClass": n.ArmorClass,
+		"HitPoints":  n.HitPoints,
+		"Speed":      n.Speed,
+		"Abilities":  n.Abilities,
 	}
 }
