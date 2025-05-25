@@ -18,6 +18,7 @@ type SpellSlotLevel struct {
 }
 
 type Entity struct {
+	DBID             int
 	ID               string
 	Name             string
 	Suffix           string

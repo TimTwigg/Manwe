@@ -1,6 +1,6 @@
 CREATE TABLE
     "ConditionEffect" (
-        "Condition" TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        "Condition" TEXT NOT NULL COLLATE NOCASE,
         "EffectID" INTEGER NOT NULL,
         "Description" TEXT NOT NULL,
         "Domain" TEXT NOT NULL DEFAULT 'Private',

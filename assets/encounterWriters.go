@@ -8,8 +8,56 @@ import (
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
-func SetEncounterEntity(creature entities.Entity, encounterID int) error {
-	// rows, err := asset_utils.QuerySQL(asset_utils.DB, "") // Check if the row exists
+func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
+	// Empty the EncounterEntities table for this encounter
+	_, err := asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM EncounterEntities WHERE EncounterID = ?", encounterID)
+	if err != nil {
+		logger.Error("Error deleting EncounterEntities: " + err.Error())
+		return err
+	}
+
+	// Insert each creature into the EncounterEntities table
+	for row, creature := range creatures {
+		_, err := asset_utils.ExecSQL(
+			asset_utils.DB,
+			"INSERT INTO EncounterEntities (EncounterID, RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Notes, IsHostile, EncounterLocked, Domain, Published, ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			encounterID,
+			row+1,
+			creature.DBID,
+			creature.Suffix,
+			creature.Initiative,
+			creature.MaxHitPoints,
+			creature.TempHitPoints,
+			creature.CurrentHitPoints,
+			creature.ArmorClassBonus,
+			creature.Notes,
+			utils.FormatBool(creature.IsHostile),
+			utils.FormatBool(creature.EncounterLocked),
+			"Private", // TODO
+			"",        // TODO
+			creature.ID,
+		)
+		if err != nil {
+			logger.Error("Error inserting EncounterEntity: " + err.Error())
+			return err
+		}
+
+		// Insert Conditions
+		for condition, rounds := range creature.Conditions {
+			_, err := asset_utils.ExecSQL(
+				asset_utils.DB,
+				"INSERT INTO EncEntConditions (EncounterID, RowID, Condition, Duration) VALUES (?, ?, ?, ?)",
+				encounterID,
+				row,
+				condition,
+				rounds,
+			)
+			if err != nil {
+				logger.Error("Error inserting EncounterEntityCondition: " + err.Error())
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -40,12 +88,10 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 			return encounters.Encounter{}, err
 		}
 		encounter.ID = int(id)
-		for _, entity := range encounter.Entities {
-			err := SetEncounterEntity(entity, encounter.ID)
-			if err != nil {
-				logger.Error("Error setting Encounter entity: " + err.Error())
-				return encounters.Encounter{}, err
-			}
+		err = SetEncounterEntities(encounter.Entities, encounter.ID)
+		if err != nil {
+			logger.Error("Error setting Encounter entity: " + err.Error())
+			return encounters.Encounter{}, err
 		}
 		return encounter, nil
 	} else {
@@ -69,12 +115,10 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 			logger.Error("Error updating Encounter: " + err.Error())
 			return encounters.Encounter{}, err
 		}
-		for _, entity := range encounter.Entities {
-			err := SetEncounterEntity(entity, encounter.ID)
-			if err != nil {
-				logger.Error("Error setting Encounter entity: " + err.Error())
-				return encounters.Encounter{}, err
-			}
+		err = SetEncounterEntities(encounter.Entities, encounter.ID)
+		if err != nil {
+			logger.Error("Error setting Encounter entity: " + err.Error())
+			return encounters.Encounter{}, err
 		}
 		return encounter, nil
 	}

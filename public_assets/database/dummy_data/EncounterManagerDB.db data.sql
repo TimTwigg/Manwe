@@ -25,9 +25,39 @@ VALUES
     ('');
 
 INSERT
-OR IGNORE INTO "Condition" ("Condition")
+OR IGNORE INTO "Condition" ("Condition", "Domain")
 VALUES
-    ('Stunned');
+    ('Blinded', 'Public'),
+    ('Charmed', 'Public'),
+    ('Deafened', 'Public'),
+    ('Exhaustion', 'Public'),
+    ('Frightened', 'Public'),
+    ('Grappled', 'Public'),
+    ('Incapacitated', 'Public'),
+    ('Invisible', 'Public'),
+    ('Paralyzed', 'Public'),
+    ('Petrified', 'Public'),
+    ('Poisoned', 'Public'),
+    ('Prone', 'Public'),
+    ('Restrained', 'Public'),
+    ('Stunned', 'Public'),
+    ('Unconscious', 'Public');
+
+INSERT
+OR IGNORE INTO "ConditionEffect" ("Condition", "EffectID", "Description", "Domain")
+VALUES
+    (
+        "Blinded",
+        1,
+        "A blinded creature can't see and automatically fails any ability check that requires sight.",
+        "Public"
+    ),
+    (
+        "Blinded",
+        2,
+        "Attack rolls against the creature have advantage, and the creature's attack rolls have disadvantage.",
+        "Public"
+    );
 
 INSERT
 OR IGNORE INTO "DamageType" ("DamageType", "Description")
