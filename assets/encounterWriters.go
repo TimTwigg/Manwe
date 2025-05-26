@@ -15,12 +15,17 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 		logger.Error("Error deleting EncounterEntities: " + err.Error())
 		return err
 	}
+	_, err = asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM EncEntConditions WHERE EncounterID = ?", encounterID)
+	if err != nil {
+		logger.Error("Error deleting EncEntConditions: " + err.Error())
+		return err
+	}
 
 	// Insert each creature into the EncounterEntities table
 	for row, creature := range creatures {
 		_, err := asset_utils.ExecSQL(
 			asset_utils.DB,
-			"INSERT INTO EncounterEntities (EncounterID, RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Notes, IsHostile, EncounterLocked, Domain, Published, ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO EncounterEntities (EncounterID, RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Concentration, Notes, IsHostile, EncounterLocked, Domain, Published, ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 			encounterID,
 			row+1,
 			creature.DBID,
@@ -30,6 +35,7 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 			creature.TempHitPoints,
 			creature.CurrentHitPoints,
 			creature.ArmorClassBonus,
+			utils.FormatBool(creature.Concentration),
 			creature.Notes,
 			utils.FormatBool(creature.IsHostile),
 			utils.FormatBool(creature.EncounterLocked),
@@ -48,7 +54,7 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 				asset_utils.DB,
 				"INSERT INTO EncEntConditions (EncounterID, RowID, Condition, Duration) VALUES (?, ?, ?, ?)",
 				encounterID,
-				row,
+				row+1,
 				condition,
 				rounds,
 			)
@@ -120,6 +126,7 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 			logger.Error("Error setting Encounter entity: " + err.Error())
 			return encounters.Encounter{}, err
 		}
+
 		return encounter, nil
 	}
 }

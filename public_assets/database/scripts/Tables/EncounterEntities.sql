@@ -9,6 +9,7 @@ CREATE TABLE
         "TempHitPoints" INTEGER DEFAULT 0,
         "CurrentHitPoints" INTEGER NOT NULL,
         "ArmorClassBonus" INTEGER DEFAULT 0,
+        "Concentration" TEXT DEFAULT '' CHECK ("Concentration" IN ('X', '')) COLLATE NOCASE,
         "Notes" TEXT DEFAULT '',
         "IsHostile" TEXT DEFAULT 'X' CHECK ("IsHostile" IN ('X', '')) COLLATE NOCASE,
         "EncounterLocked" TEXT DEFAULT '' CHECK ("EncounterLocked" IN ('X', '')) COLLATE NOCASE,

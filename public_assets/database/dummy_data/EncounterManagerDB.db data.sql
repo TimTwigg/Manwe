@@ -331,9 +331,9 @@ VALUES
     (1, 1, 'Stunned', 1);
 
 INSERT
-OR IGNORE INTO "Lair" ("EntityID", "Description", "Initiative")
+OR IGNORE INTO "Lair" ("EntityID", "Name", "Description", "Initiative")
 VALUES
-    (1, 'Ghoul lives in lair', 20);
+    (1, 'Winter Ghoul', 'Ghoul lives in lair', 20);
 
 INSERT
 OR IGNORE INTO "Modifiers" (

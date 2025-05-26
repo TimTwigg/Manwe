@@ -2,6 +2,7 @@ package assets
 
 import (
 	"strconv"
+	"strings"
 
 	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
 	actions "github.com/TimTwigg/EncounterManagerBackend/types/actions"
@@ -389,60 +390,10 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 		}
 	}
 
-	// Read Lair
-	lair_row, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Description, Initiative FROM Lair WHERE EntityID = ?", id)
-	if err != nil {
-		logger.Error("Error querying database: " + err.Error())
-		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
-	}
-	defer lair_row.Close()
-	// Read row from Lair table
-	if lair_row.Next() {
-		var Description string
-		var Initiative int
-		if err := lair_row.Scan(
-			&Description,
-			&Initiative,
-		); err != nil {
-			logger.Error("Error Scanning Lair Row: " + err.Error())
+	if block.Lair, err = ReadLairByEntityID(id); err != nil {
+		if !strings.HasPrefix(err.Error(), "No Lair found") {
+			logger.Error("Error reading lair: " + err.Error())
 			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
-		}
-		block.Lair = stat_blocks.Lair{Name: block.Name, Description: Description, Initiative: Initiative, Actions: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}, RegionalEffects: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}}
-
-		// Read Lair Actions
-		lair_actions_row, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, IsRegional FROM LairActionV WHERE EntityID = ?", id)
-		if err != nil {
-			logger.Error("Error querying database: " + err.Error())
-			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
-		}
-		defer lair_actions_row.Close()
-		// Read row from LairActions table
-		for lair_actions_row.Next() {
-			var Name string
-			var Description string
-			var IsRegional string
-			if err := lair_actions_row.Scan(
-				&Name,
-				&Description,
-				&IsRegional,
-			); err != nil {
-				logger.Error("Error Scanning Lair Action Row: " + err.Error())
-				return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
-			}
-			// Add to StatBlock
-			if Name == "X" {
-				if IsRegional == "X" {
-					block.Lair.RegionalEffects.Description = Description
-				} else {
-					block.Lair.Actions.Description = Description
-				}
-			} else {
-				if IsRegional == "X" {
-					block.Lair.RegionalEffects.Items = append(block.Lair.RegionalEffects.Items, generics.SimpleItem{Name: Name, Description: Description})
-				} else {
-					block.Lair.Actions.Items = append(block.Lair.Actions.Items, generics.SimpleItem{Name: Name, Description: Description})
-				}
-			}
 		}
 	}
 

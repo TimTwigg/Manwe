@@ -78,6 +78,11 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 
 		enc := encounters.Encounter{}
 		json.NewDecoder(r.Body).Decode(&enc)
+		if enc.Name == "" {
+			logger.Error("EncounterHandler: Encounter name is required")
+			http.Error(w, "Encounter name is required", http.StatusBadRequest)
+			return
+		}
 		enc, err := assets.SetEncounter(enc)
 		if err != nil {
 			logger.Error("EncounterHandler: Error setting encounter: " + err.Error())

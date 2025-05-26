@@ -2,11 +2,13 @@ package assets
 
 import (
 	"strconv"
+	"strings"
 
 	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
 	encounters "github.com/TimTwigg/EncounterManagerBackend/types/encounters"
 	entities "github.com/TimTwigg/EncounterManagerBackend/types/entities"
 	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
+	error_utils "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
 	utils "github.com/TimTwigg/EncounterManagerBackend/utils/functions"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 	errors "github.com/pkg/errors"
@@ -54,7 +56,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 		return encounters.Encounter{}, errors.New("No Encounter found with id: " + strconv.Itoa(id))
 	}
 
-	entity_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Notes, IsHostile, EncounterLocked, ID FROM EncounterEntities WHERE EncounterID = ?", id)
+	entity_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Concentration, Notes, IsHostile, EncounterLocked, ID FROM EncounterEntities WHERE EncounterID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
@@ -62,7 +64,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 	defer entity_rows.Close()
 	for entity_rows.Next() {
 		var rowID, entityID, initiative, maxHitPoints, tempHitPoints, currentHitPoints, armorClassBonus int
-		var suffix, notes, isHostile, encounterLocked, ID string
+		var suffix, notes, isHostile, encounterLocked, concentration, ID string
 
 		if err := entity_rows.Scan(
 			&rowID,
@@ -73,6 +75,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 			&tempHitPoints,
 			&currentHitPoints,
 			&armorClassBonus,
+			&concentration,
 			&notes,
 			&isHostile,
 			&encounterLocked,
@@ -102,7 +105,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 			Conditions:       make(map[string]int, 0),
 			SpellSaveDC:      statblock.Details.SpellSaveDC,
 			SpellSlots:       make(map[int]entities.SpellSlotLevel, 0),
-			Concentration:    false,
+			Concentration:    concentration == "X",
 			Notes:            notes,
 			IsHostile:        isHostile == "X",
 			EncounterLocked:  encounterLocked == "X",
@@ -129,6 +132,15 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 		}
 
 		encounter.Entities = append(encounter.Entities, entity)
+	}
+
+	if encounter.HasLair {
+		if encounter.Lair, err = ReadLairByEntityID(id); err != nil {
+			if !strings.HasPrefix(err.Error(), "No Lair found") {
+				logger.Error("Error reading lair: " + err.Error())
+				return encounters.Encounter{}, error_utils.ParseError{Message: err.Error()}
+			}
+		}
 	}
 
 	return encounter, nil
