@@ -6,6 +6,8 @@
 - Rework so that stats are not hardcoded - allow custom stats and saving throws
     - Think this is done - review
 - How to handle entities in encounter being non-statblocks (ie players or temp npcs)
+- Add use of userID to reading DB
+- login auth
 
 # Database Design
 

@@ -5,19 +5,21 @@ import (
 )
 
 type Lair struct {
-	Name            string
-	Description     string
-	Initiative      int
-	Actions         generics.ItemList
-	RegionalEffects generics.ItemList
+	Name             string
+	OwningEntityDBID int
+	Description      string
+	Initiative       int
+	Actions          generics.ItemList
+	RegionalEffects  generics.ItemList
 }
 
 func (l Lair) Dict() map[string]interface{} {
 	return map[string]interface{}{
-		"Name":            l.Name,
-		"Description":     l.Description,
-		"Initiative":      l.Initiative,
-		"Actions":         l.Actions,
-		"RegionalEffects": l.RegionalEffects,
+		"Name":             l.Name,
+		"OwningEntityDBID": l.OwningEntityDBID,
+		"Description":      l.Description,
+		"Initiative":       l.Initiative,
+		"Actions":          l.Actions,
+		"RegionalEffects":  l.RegionalEffects,
 	}
 }

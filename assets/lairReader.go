@@ -29,7 +29,7 @@ func ReadLairByEntityID(id int) (stat_blocks.Lair, error) {
 			logger.Error("Error Scanning Lair Row: " + err.Error())
 			return stat_blocks.Lair{}, error_utils.ParseError{Message: err.Error()}
 		}
-		block := stat_blocks.Lair{Name: Name, Description: Description, Initiative: Initiative, Actions: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}, RegionalEffects: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}}
+		block := stat_blocks.Lair{Name: Name, OwningEntityDBID: id, Description: Description, Initiative: Initiative, Actions: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}, RegionalEffects: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}}
 
 		// Read Lair Actions
 		lair_actions_row, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, IsRegional FROM LairActionV WHERE EntityID = ?", id)

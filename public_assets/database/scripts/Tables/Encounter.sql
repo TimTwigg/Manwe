@@ -10,7 +10,7 @@ CREATE TABLE
         "Round" INTEGER DEFAULT 0,
         "Turn" INTEGER DEFAULT 0,
         "HasLair" TEXT DEFAULT '' CHECK ("HasLair" IN ('X', '')) COLLATE NOCASE,
-        "LairEntityName" TEXT DEFAULT '',
+        "LairOwnerID" INTEGER DEFAULT -1,
         "ActiveID" TEXT DEFAULT '',
         "Domain" TEXT NOT NULL DEFAULT 'Private',
         "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),

@@ -6,15 +6,15 @@ import (
 )
 
 type Encounter struct {
-	ID             int
-	Name           string
-	Description    string
-	Metadata       EncounterMetadata
-	Entities       []entities.Entity
-	HasLair        bool
-	Lair           stat_blocks.Lair
-	LairEntityName string
-	ActiveID       string
+	ID          int
+	Name        string
+	Description string
+	Metadata    EncounterMetadata
+	Entities    []entities.Entity
+	HasLair     bool
+	Lair        stat_blocks.Lair
+	LairOwnerID int
+	ActiveID    string
 }
 
 func (e Encounter) Dict() map[string]interface{} {
@@ -25,6 +25,9 @@ func (e Encounter) Dict() map[string]interface{} {
 		"Metadata":    e.Metadata.Dict(),
 		"Entities":    e.Entities,
 		"HasLair":     e.HasLair,
+		"Lair":        e.Lair.Dict(),
+		"LairOwnerID": e.LairOwnerID,
+		"ActiveID":    e.ActiveID,
 	}
 }
 

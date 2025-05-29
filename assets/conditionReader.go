@@ -13,7 +13,7 @@ func ReadAllConditions() ([]condition.Condition, error) {
 		return nil, err
 	}
 
-	conditions := make([]condition.Condition, 0, 0)
+	conditions := make([]condition.Condition, 0)
 	for rows.Next() {
 		var cond condition.Condition
 		if err := rows.Scan(&cond.Name); err != nil {

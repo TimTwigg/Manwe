@@ -71,7 +71,7 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 	if encounter.ID == 0 {
 		res, err := asset_utils.ExecSQL(
 			asset_utils.DB,
-			"INSERT INTO Encounter (Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairEntityName, ActiveID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO Encounter (Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairOwnerID, ActiveID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 			encounter.Name,
 			encounter.Description,
 			utils.FormatDate(encounter.Metadata.CreationDate),
@@ -81,7 +81,7 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 			encounter.Metadata.Round,
 			encounter.Metadata.Turn,
 			utils.FormatBool(encounter.HasLair),
-			encounter.LairEntityName,
+			encounter.LairOwnerID,
 			encounter.ActiveID,
 		)
 		if err != nil {
@@ -103,7 +103,7 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 	} else {
 		_, err := asset_utils.ExecSQL(
 			asset_utils.DB,
-			"UPDATE Encounter SET Name = ?, Description = ?, CreationDate = ?, AccessedDate = ?, Campaign = ?, Started = ?, Round = ?, Turn = ?, HasLair = ?, LairEntityName = ?, ActiveID = ? WHERE EncounterID = ?",
+			"UPDATE Encounter SET Name = ?, Description = ?, CreationDate = ?, AccessedDate = ?, Campaign = ?, Started = ?, Round = ?, Turn = ?, HasLair = ?, LairOwnerID = ?, ActiveID = ? WHERE EncounterID = ?",
 			encounter.Name,
 			encounter.Description,
 			utils.FormatDate(encounter.Metadata.CreationDate),
@@ -113,7 +113,7 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 			encounter.Metadata.Round,
 			encounter.Metadata.Turn,
 			utils.FormatBool(encounter.HasLair),
-			encounter.LairEntityName,
+			encounter.LairOwnerID,
 			encounter.ActiveID,
 			encounter.ID,
 		)

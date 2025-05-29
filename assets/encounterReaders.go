@@ -15,7 +15,7 @@ import (
 )
 
 func ReadEncounterByID(id int) (encounters.Encounter, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairEntityName, ActiveID FROM Encounter WHERE EncounterID = ?", id)
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairOwnerID, ActiveID FROM Encounter WHERE EncounterID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
@@ -41,7 +41,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 			&encounter.Metadata.Round,
 			&encounter.Metadata.Turn,
 			&HasLair,
-			&encounter.LairEntityName,
+			&encounter.LairOwnerID,
 			&encounter.ActiveID,
 		); err != nil {
 			logger.Error("Error Scanning Encounter Row: " + err.Error())
@@ -134,8 +134,8 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 		encounter.Entities = append(encounter.Entities, entity)
 	}
 
-	if encounter.HasLair {
-		if encounter.Lair, err = ReadLairByEntityID(id); err != nil {
+	if encounter.HasLair && encounter.LairOwnerID > 0 {
+		if encounter.Lair, err = ReadLairByEntityID(encounter.LairOwnerID); err != nil {
 			if !strings.HasPrefix(err.Error(), "No Lair found") {
 				logger.Error("Error reading lair: " + err.Error())
 				return encounters.Encounter{}, error_utils.ParseError{Message: err.Error()}
