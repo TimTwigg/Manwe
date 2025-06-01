@@ -14,21 +14,21 @@ import (
 
 func cleanup() {
 	asset_utils.CloseDB(asset_utils.DB)
-	logger.Info("Database closed.")
-	logger.Info("Server stopped.")
+	logger.Init("Database closed.")
+	logger.Init("Server stopped.")
 }
 
 func main() {
 	routes.RegisterRoutes()
 
-	logger.Info("Loading database...")
+	logger.Init("Loading database...")
 	database, err := asset_utils.GetDB()
 	if err != nil {
 		logger.Error("Error loading database: " + err.Error())
 		return
 	}
 	asset_utils.DB = database
-	logger.Info("Database loaded.")
+	logger.Init("Database loaded.")
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -38,7 +38,7 @@ func main() {
 		os.Exit(0)
 	}()
 
-	logger.Info("Server started on port 8080")
+	logger.Init("Server started on port 8080")
 	if err := http.ListenAndServe("localhost:8080", nil); err != nil {
 		asset_utils.CloseDB(asset_utils.DB)
 		log.Fatal(err)

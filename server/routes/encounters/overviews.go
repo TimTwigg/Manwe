@@ -15,6 +15,7 @@ func EncounterOverviewHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	case http.MethodGet:
 		logger.GetRequest("EncounterOverviewHandler: GET request")
+		logger.GetRequest("Requesting all encounter overviews")
 
 		encounters, err := assets.ReadAllEncounterOverviews()
 		if err != nil {

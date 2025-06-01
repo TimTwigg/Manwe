@@ -22,6 +22,7 @@ func RegisterRoutes() {
 	http.HandleFunc("/statblock", WrapHandler((statblockroutes.StatBlockHandler)))
 	http.HandleFunc("/statblock/all", WrapHandler((statblockroutes.StatBlockOverviewHandler)))
 	http.HandleFunc("/encounter", WrapHandler((encounterroutes.EncounterHandler)))
+	http.HandleFunc("/encounter/", WrapHandler((encounterroutes.EncounterHandler)))
 	http.HandleFunc("/encounter/all", WrapHandler((encounterroutes.EncounterOverviewHandler)))
 	http.HandleFunc("/condition/all", WrapHandler((conditionroutes.AllConditionsHandler)))
 }

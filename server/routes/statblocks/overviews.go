@@ -15,6 +15,7 @@ func StatBlockOverviewHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	case http.MethodGet:
 		logger.GetRequest("StatBlockOverviewHandler: GET request")
+		logger.GetRequest("Requesting all statblock overviews")
 
 		statblocks, err := assets.ReadAllStatBlockOverviews()
 		if err != nil {

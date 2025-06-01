@@ -42,7 +42,7 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 			detail = d
 		}
 
-		logger.Info("Requesting StatBlock: (" + accessType + ": " + accessor + ") with Detail Level: (" + strconv.Itoa(detail) + ")")
+		logger.GetRequest("Requesting StatBlock: (" + accessType + ": " + accessor + ") with Detail Level: (" + strconv.Itoa(detail) + ")")
 
 		switch detail {
 		case 1:

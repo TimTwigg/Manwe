@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	assets "github.com/TimTwigg/EncounterManagerBackend/assets"
 	server_utils "github.com/TimTwigg/EncounterManagerBackend/server/utils"
@@ -40,7 +41,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		logger.Info("Requesting Encounter: (" + accessType + ": " + accessor + ") with detail level: " + strconv.Itoa(detail))
+		logger.GetRequest("Requesting Encounter: (" + accessType + ": " + accessor + ") with detail level: " + strconv.Itoa(detail))
 
 		switch detail {
 		case 1:
@@ -83,6 +84,9 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Encounter name is required", http.StatusBadRequest)
 			return
 		}
+
+		logger.PostRequest("Setting Encounter: " + enc.Name)
+
 		enc, err := assets.SetEncounter(enc)
 		if err != nil {
 			logger.Error("EncounterHandler: Error setting encounter: " + err.Error())
@@ -95,6 +99,25 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 			return
 		}
+
+	case http.MethodDelete:
+		logger.DeleteRequest("EncounterHandler: DELETE request")
+		defer r.Body.Close()
+		encounterID, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/encounter/"))
+		if err != nil || encounterID <= 0 {
+			logger.Error("EncounterHandler: Encounter ID is required for deletion")
+			http.Error(w, "Encounter ID is required for deletion", http.StatusBadRequest)
+			return
+		}
+		logger.DeleteRequest("Deleting Encounter: " + strconv.Itoa((encounterID)))
+
+		err = assets.DeleteEncounter(encounterID)
+		if err != nil {
+			logger.Error("EncounterHandler: Error deleting encounter: " + err.Error())
+			http.Error(w, "Error deleting encounter", server_utils.ErrorStatus(err))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
 
 	default:
 		http.Error(w, "Method not supported", http.StatusMethodNotAllowed)

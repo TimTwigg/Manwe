@@ -132,5 +132,23 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 }
 
 func DeleteEncounter(encounterID int) error {
+	_, err := asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM EncEntConditions WHERE EncounterID = ?", encounterID)
+	if err != nil {
+		logger.Error("Error deleting EncEntConditions: " + err.Error())
+		return err
+	}
+
+	_, err = asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM EncounterEntities WHERE EncounterID = ?", encounterID)
+	if err != nil {
+		logger.Error("Error deleting EncounterEntities: " + err.Error())
+		return err
+	}
+
+	_, err = asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM Encounter WHERE EncounterID = ?", encounterID)
+	if err != nil {
+		logger.Error("Error deleting Encounter: " + err.Error())
+		return err
+	}
+
 	return nil
 }

@@ -15,6 +15,7 @@ func AllConditionsHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	case http.MethodGet:
 		logger.GetRequest("ConditionHandler: GET request")
+		logger.GetRequest("Requesting all conditions")
 
 		conditions, err := assets.ReadAllConditions()
 		if err != nil {
