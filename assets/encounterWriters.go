@@ -130,3 +130,7 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 		return encounter, nil
 	}
 }
+
+func DeleteEncounter(encounterID int) error {
+	return nil
+}
