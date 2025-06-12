@@ -10,6 +10,8 @@ import (
 	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
 	routes "github.com/TimTwigg/EncounterManagerBackend/server"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	dashboard "github.com/supertokens/supertokens-golang/recipe/dashboard"
+	dashboardmodels "github.com/supertokens/supertokens-golang/recipe/dashboard/dashboardmodels"
 	emailpassword "github.com/supertokens/supertokens-golang/recipe/emailpassword"
 	session "github.com/supertokens/supertokens-golang/recipe/session"
 	supertokens "github.com/supertokens/supertokens-golang/supertokens"
@@ -47,8 +49,13 @@ func main() {
 			WebsiteBasePath: &websiteBasePath,
 		},
 		RecipeList: []supertokens.Recipe{
-			emailpassword.Init(nil),
 			session.Init(nil),
+			emailpassword.Init(nil),
+			dashboard.Init(&dashboardmodels.TypeInput{
+				Admins: &[]string{
+					"tim@twiggusa.com",
+				},
+			}),
 		},
 	})
 	if err != nil {
