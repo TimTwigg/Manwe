@@ -8,7 +8,7 @@ import (
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
-func StatBlockOverviewHandler(w http.ResponseWriter, r *http.Request) {
+func StatBlockOverviewHandler(w http.ResponseWriter, r *http.Request, userid string) {
 	switch r.Method {
 	case http.MethodOptions:
 		logger.OptionsRequest("StatBlockOverviewHandler: OPTIONS request")
@@ -17,7 +17,7 @@ func StatBlockOverviewHandler(w http.ResponseWriter, r *http.Request) {
 		logger.GetRequest("StatBlockOverviewHandler: GET request")
 		logger.GetRequest("Requesting all statblock overviews")
 
-		statblocks, err := assets.ReadAllStatBlockOverviews()
+		statblocks, err := assets.ReadAllStatBlockOverviews(userid)
 		if err != nil {
 			http.Error(w, "Error reading statblocks", http.StatusInternalServerError)
 			return

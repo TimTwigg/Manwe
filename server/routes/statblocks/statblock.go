@@ -10,7 +10,7 @@ import (
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
-func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
+func StatBlockHandler(w http.ResponseWriter, r *http.Request, userid string) {
 	switch r.Method {
 	case http.MethodOptions:
 		logger.OptionsRequest("StatBlockHandler: OPTIONS request")
@@ -47,7 +47,7 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 		switch detail {
 		case 1:
 			// Read the statblock overview from the database
-			statBlockOverview, err := assets.ReadStatBlockOverviewByAccessType(accessType, accessor)
+			statBlockOverview, err := assets.ReadStatBlockOverviewByAccessType(accessType, accessor, userid)
 			if err != nil {
 				http.Error(w, "StatBlock not found", server_utils.ErrorStatus(err))
 				return
@@ -60,7 +60,7 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		case 2:
 			// Read the statblock from the database
-			statBlock, err := assets.ReadStatBlockByAccessType(accessType, accessor)
+			statBlock, err := assets.ReadStatBlockByAccessType(accessType, accessor, userid)
 			if err != nil {
 				http.Error(w, "StatBlock not found", server_utils.ErrorStatus(err))
 				return

@@ -19,7 +19,7 @@ CREATE TABLE
         "ReactionCount" INTEGER NOT NULL DEFAULT 1 CHECK ("ReactionCount" >= 0),
         "ArmorType" TEXT NOT NULL,
         "RecordSource" TEXT NOT NULL,
-        "Domain" TEXT NOT NULL DEFAULT 'Private',
+        "Domain" TEXT NOT NULL DEFAULT 'Public',
         "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),
         PRIMARY KEY ("EntityID" AUTOINCREMENT),
         FOREIGN KEY ("Size") REFERENCES "Size" ("Size"),

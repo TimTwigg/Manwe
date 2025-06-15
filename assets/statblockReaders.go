@@ -13,9 +13,9 @@ import (
 	errors "github.com/pkg/errors"
 )
 
-func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
+func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 	// Read Entity information
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, ChallengeRating, ProficiencyBonus, Source, Size, Type, Alignment, ArmorClass, HitPoints1, HitPoints2, SWalk, SFly, SClimb, SSwim, SBurrow, ArmorType FROM Entity WHERE EntityID = ?", id)
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, ChallengeRating, ProficiencyBonus, Source, Size, Type, Alignment, ArmorClass, HitPoints1, HitPoints2, SWalk, SFly, SClimb, SSwim, SBurrow, ArmorType FROM Entity WHERE EntityID = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')", id, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, err
@@ -400,9 +400,9 @@ func ReadStatBlockByID(id int) (stat_blocks.StatBlock, error) {
 	return block, nil
 }
 
-func ReadStatBlockByName(name string) (stat_blocks.StatBlock, error) {
+func ReadStatBlockByName(name string, userid string) (stat_blocks.StatBlock, error) {
 	// Read Entity information
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID FROM Entity WHERE name = ?", name)
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID FROM Entity WHERE name = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')", name, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
@@ -420,11 +420,11 @@ func ReadStatBlockByName(name string) (stat_blocks.StatBlock, error) {
 		logger.Error("No stat block found with name: " + name)
 		return stat_blocks.StatBlock{}, errors.New("No stat block found with name: " + name)
 	}
-	return ReadStatBlockByID(id)
+	return ReadStatBlockByID(id, userid)
 }
 
-func ReadStatBlockOverviewByID(id int) (stat_blocks.StatBlockOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, Type, Size, ChallengeRating, Source FROM Entity WHERE EntityID = ?", id)
+func ReadStatBlockOverviewByID(id int, userid string) (stat_blocks.StatBlockOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, Type, Size, ChallengeRating, Source FROM Entity WHERE EntityID = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')", id, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
@@ -451,8 +451,8 @@ func ReadStatBlockOverviewByID(id int) (stat_blocks.StatBlockOverview, error) {
 	return block, nil
 }
 
-func ReadStatBlockOverviewByName(name string) (stat_blocks.StatBlockOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID FROM Entity WHERE name = ?", name)
+func ReadStatBlockOverviewByName(name string, userid string) (stat_blocks.StatBlockOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID FROM Entity WHERE name = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')", name, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
@@ -472,11 +472,11 @@ func ReadStatBlockOverviewByName(name string) (stat_blocks.StatBlockOverview, er
 		return stat_blocks.StatBlockOverview{}, errors.New("No stat block found with name: " + name)
 	}
 
-	return ReadStatBlockOverviewByID(id)
+	return ReadStatBlockOverviewByID(id, userid)
 }
 
-func ReadAllStatBlockOverviews() ([]stat_blocks.StatBlockOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, Type, Size, ChallengeRating, Source FROM Entity")
+func ReadAllStatBlockOverviews(userid string) ([]stat_blocks.StatBlockOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, Type, Size, ChallengeRating, Source FROM Entity WHERE (Domain = 'Public' OR Domain = ? OR Published = 'X')", userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return nil, error_utils.ParseError{Message: err.Error()}
@@ -506,7 +506,7 @@ func ReadAllStatBlockOverviews() ([]stat_blocks.StatBlockOverview, error) {
 	return statblocks, nil
 }
 
-func ReadStatBlockByAccessType(accessType string, accessor string) (stat_blocks.StatBlock, error) {
+func ReadStatBlockByAccessType(accessType string, accessor string, userid string) (stat_blocks.StatBlock, error) {
 	switch accessType {
 	case "id":
 		id, err := strconv.Atoi(accessor)
@@ -514,16 +514,16 @@ func ReadStatBlockByAccessType(accessType string, accessor string) (stat_blocks.
 			logger.Error("Error converting id to int: " + err.Error())
 			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
-		return ReadStatBlockByID(id)
+		return ReadStatBlockByID(id, userid)
 	case "name":
-		return ReadStatBlockByName(accessor)
+		return ReadStatBlockByName(accessor, userid)
 	default:
 		logger.Error("Invalid access type: " + accessType)
 		return stat_blocks.StatBlock{}, errors.New("Invalid access type: " + accessType)
 	}
 }
 
-func ReadStatBlockOverviewByAccessType(accessType string, accessor string) (stat_blocks.StatBlockOverview, error) {
+func ReadStatBlockOverviewByAccessType(accessType string, accessor string, userid string) (stat_blocks.StatBlockOverview, error) {
 	switch accessType {
 	case "id":
 		id, err := strconv.Atoi(accessor)
@@ -531,9 +531,9 @@ func ReadStatBlockOverviewByAccessType(accessType string, accessor string) (stat
 			logger.Error("Error converting id to int: " + err.Error())
 			return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
 		}
-		return ReadStatBlockOverviewByID(id)
+		return ReadStatBlockOverviewByID(id, userid)
 	case "name":
-		return ReadStatBlockOverviewByName(accessor)
+		return ReadStatBlockOverviewByName(accessor, userid)
 	default:
 		logger.Error("Invalid access type: " + accessType)
 		return stat_blocks.StatBlockOverview{}, errors.New("Invalid access type: " + accessType)

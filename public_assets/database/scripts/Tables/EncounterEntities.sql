@@ -14,10 +14,7 @@ CREATE TABLE
         "IsHostile" TEXT DEFAULT 'X' CHECK ("IsHostile" IN ('X', '')) COLLATE NOCASE,
         "EncounterLocked" TEXT DEFAULT '' CHECK ("EncounterLocked" IN ('X', '')) COLLATE NOCASE,
         "ID" TEXT NOT NULL DEFAULT '',
-        "Domain" TEXT NOT NULL DEFAULT 'Private',
-        "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),
         PRIMARY KEY ("EncounterID", "RowID"),
         FOREIGN KEY ("EncounterID") REFERENCES "Encounter" ("EncounterID") ON DELETE CASCADE,
-        FOREIGN KEY ("EntityID") REFERENCES "Entity" ("EntityID"),
-        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName") ON DELETE CASCADE ON UPDATE CASCADE
+        FOREIGN KEY ("EntityID") REFERENCES "Entity" ("EntityID")
     )

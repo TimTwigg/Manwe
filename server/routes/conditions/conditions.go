@@ -8,7 +8,7 @@ import (
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
-func AllConditionsHandler(w http.ResponseWriter, r *http.Request) {
+func AllConditionsHandler(w http.ResponseWriter, r *http.Request, userid string) {
 	switch r.Method {
 	case http.MethodOptions:
 		logger.OptionsRequest("ConditionHandler: OPTIONS request")
@@ -17,7 +17,7 @@ func AllConditionsHandler(w http.ResponseWriter, r *http.Request) {
 		logger.GetRequest("ConditionHandler: GET request")
 		logger.GetRequest("Requesting all conditions")
 
-		conditions, err := assets.ReadAllConditions()
+		conditions, err := assets.ReadAllConditions(userid)
 		if err != nil {
 			http.Error(w, "Error reading conditions", http.StatusInternalServerError)
 			return

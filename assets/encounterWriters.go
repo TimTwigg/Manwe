@@ -4,9 +4,31 @@ import (
 	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
 	encounters "github.com/TimTwigg/EncounterManagerBackend/types/encounters"
 	entities "github.com/TimTwigg/EncounterManagerBackend/types/entities"
+	error_utils "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
 	utils "github.com/TimTwigg/EncounterManagerBackend/utils/functions"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
+
+func encounterBelongsToUser(encounterID int, userid string) (bool, error) {
+	// Check that the encounter belongs to the user
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Domain FROM Encounter WHERE EncounterID = ?", encounterID)
+	if err != nil {
+		logger.Error("Error checking EncounterID: " + err.Error())
+		return false, err
+	}
+	var domain string
+	if rows.Next() {
+		if err := rows.Scan(&domain); err != nil {
+			logger.Error("Error scanning domain from Encounter: " + err.Error())
+			return false, err
+		}
+	}
+	if domain != userid {
+		logger.Error("EncounterID does not belong to user")
+		return false, error_utils.AuthError{Message: "EncounterID does not belong to user"}
+	}
+	return true, nil
+}
 
 func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 	// Empty the EncounterEntities table for this encounter
@@ -25,7 +47,7 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 	for row, creature := range creatures {
 		_, err := asset_utils.ExecSQL(
 			asset_utils.DB,
-			"INSERT INTO EncounterEntities (EncounterID, RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Concentration, Notes, IsHostile, EncounterLocked, Domain, Published, ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO EncounterEntities (EncounterID, RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Concentration, Notes, IsHostile, EncounterLocked, ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 			encounterID,
 			row+1,
 			creature.DBID,
@@ -39,8 +61,6 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 			creature.Notes,
 			utils.FormatBool(creature.IsHostile),
 			utils.FormatBool(creature.EncounterLocked),
-			"Private", // TODO
-			"",        // TODO
 			creature.ID,
 		)
 		if err != nil {
@@ -67,11 +87,11 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 	return nil
 }
 
-func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) {
+func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Encounter, error) {
 	if encounter.ID == 0 {
 		res, err := asset_utils.ExecSQL(
 			asset_utils.DB,
-			"INSERT INTO Encounter (Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairOwnerID, ActiveID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO Encounter (Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairOwnerID, ActiveID, Domain) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 			encounter.Name,
 			encounter.Description,
 			utils.FormatDate(encounter.Metadata.CreationDate),
@@ -83,6 +103,7 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 			utils.FormatBool(encounter.HasLair),
 			encounter.LairOwnerID,
 			encounter.ActiveID,
+			userid,
 		)
 		if err != nil {
 			logger.Error("Error inserting Encounter: " + err.Error())
@@ -101,7 +122,19 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 		}
 		return encounter, nil
 	} else {
-		_, err := asset_utils.ExecSQL(
+		//  Check if the encounter belongs to the user
+		auth, err := encounterBelongsToUser(encounter.ID, userid)
+		if err != nil {
+			logger.Error("Error checking if encounter belongs to user: " + err.Error())
+			return encounters.Encounter{}, err
+		}
+		if !auth {
+			logger.Error("Encounter does not belong to user")
+			return encounters.Encounter{}, error_utils.AuthError{Message: "Encounter does not belong to user"}
+		}
+
+		//  Update the encounter
+		_, err = asset_utils.ExecSQL(
 			asset_utils.DB,
 			"UPDATE Encounter SET Name = ?, Description = ?, CreationDate = ?, AccessedDate = ?, Campaign = ?, Started = ?, Round = ?, Turn = ?, HasLair = ?, LairOwnerID = ?, ActiveID = ? WHERE EncounterID = ?",
 			encounter.Name,
@@ -131,8 +164,18 @@ func SetEncounter(encounter encounters.Encounter) (encounters.Encounter, error) 
 	}
 }
 
-func DeleteEncounter(encounterID int) error {
-	_, err := asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM EncEntConditions WHERE EncounterID = ?", encounterID)
+func DeleteEncounter(encounterID int, userid string) error {
+	auth, err := encounterBelongsToUser(encounterID, userid)
+	if err != nil {
+		logger.Error("Error checking if encounter belongs to user: " + err.Error())
+		return err
+	}
+	if !auth {
+		logger.Error("Encounter does not belong to user")
+		return error_utils.AuthError{Message: "Encounter does not belong to user"}
+	}
+
+	_, err = asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM EncEntConditions WHERE EncounterID = ?", encounterID)
 	if err != nil {
 		logger.Error("Error deleting EncEntConditions: " + err.Error())
 		return err

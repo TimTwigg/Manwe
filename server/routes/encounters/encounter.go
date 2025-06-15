@@ -12,7 +12,7 @@ import (
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
-func EncounterHandler(w http.ResponseWriter, r *http.Request) {
+func EncounterHandler(w http.ResponseWriter, r *http.Request, userid string) {
 	switch r.Method {
 	case http.MethodOptions:
 		logger.OptionsRequest("EncounterHandler: OPTIONS request")
@@ -45,7 +45,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 
 		switch detail {
 		case 1:
-			encounter, err := assets.ReadEncounterOverviewByAccessType(accessType, accessor)
+			encounter, err := assets.ReadEncounterOverviewByAccessType(accessType, accessor, userid)
 			if err != nil {
 				http.Error(w, "Encounter not found", server_utils.ErrorStatus(err))
 				return
@@ -57,7 +57,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		case 2:
-			encounter, err := assets.ReadEncounterByAccessType(accessType, accessor)
+			encounter, err := assets.ReadEncounterByAccessType(accessType, accessor, userid)
 			if err != nil {
 				http.Error(w, "Encounter not found", server_utils.ErrorStatus(err))
 				return
@@ -87,7 +87,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 
 		logger.PostRequest("Setting Encounter: " + enc.Name)
 
-		enc, err := assets.SetEncounter(enc)
+		enc, err := assets.SetEncounter(enc, userid)
 		if err != nil {
 			logger.Error("EncounterHandler: Error setting encounter: " + err.Error())
 			http.Error(w, "Error setting encounter", http.StatusInternalServerError)
@@ -111,7 +111,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		logger.DeleteRequest("Deleting Encounter: " + strconv.Itoa((encounterID)))
 
-		err = assets.DeleteEncounter(encounterID)
+		err = assets.DeleteEncounter(encounterID, userid)
 		if err != nil {
 			logger.Error("EncounterHandler: Error deleting encounter: " + err.Error())
 			http.Error(w, "Error deleting encounter", server_utils.ErrorStatus(err))

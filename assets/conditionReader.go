@@ -6,8 +6,8 @@ import (
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
-func ReadAllConditions() ([]condition.Condition, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Condition FROM Condition")
+func ReadAllConditions(userid string) ([]condition.Condition, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Condition FROM Condition WHERE (Domain = 'Public' OR Domain = ? OR Published = 'X')", userid)
 	if err != nil {
 		logger.Error("Error reading conditions from database" + err.Error())
 		return nil, err

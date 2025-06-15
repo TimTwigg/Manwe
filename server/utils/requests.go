@@ -4,6 +4,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	error_utils "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
+	session "github.com/supertokens/supertokens-golang/recipe/session"
 )
 
 func GetDetailLevel(r *http.Request) (int, error) {
@@ -28,4 +31,16 @@ func ErrorStatus(err error) int {
 		}
 	}
 	return http.StatusOK
+}
+
+func GetSessionUserID(r *http.Request) (string, error) {
+	sessionContainer := session.GetSessionFromRequestContext(r.Context())
+	if sessionContainer == nil {
+		return "", error_utils.AuthError{Message: "No Session Found"}
+	}
+	userID := sessionContainer.GetUserID()
+	if userID == "" {
+		return "", error_utils.AuthError{Message: "No User ID Found"}
+	}
+	return userID, nil
 }

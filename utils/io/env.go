@@ -11,3 +11,15 @@ func GetEnv() (map[string]string, error) {
 	}
 	return env, nil
 }
+
+func GetEnvVar(key string) (string, error) {
+	env, err := GetEnv()
+	if err != nil {
+		return "", err
+	}
+	value, exists := env[key]
+	if !exists {
+		return "", nil
+	}
+	return value, nil
+}

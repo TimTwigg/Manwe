@@ -62,10 +62,20 @@ func QuerySQL(db *sql.DB, query string, args ...any) (*sql.Rows, error) {
 	return rows, nil
 }
 
+// Execute a SQL command and return the result
 func ExecSQL(db *sql.DB, query string, args ...any) (sql.Result, error) {
 	result, err := db.Exec(query, args...)
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
+}
+
+// Insert or update a user in the User table
+func UpsertUser(db *sql.DB, userID string) error {
+	_, err := ExecSQL(db, "INSERT OR IGNORE INTO User (UserName) VALUES (?)", userID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

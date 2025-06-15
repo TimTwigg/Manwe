@@ -35,3 +35,5 @@ dump*.txt
 
 # Database
 *.xlsx
+
+.env

@@ -12,7 +12,7 @@ CREATE TABLE
         "HasLair" TEXT DEFAULT '' CHECK ("HasLair" IN ('X', '')) COLLATE NOCASE,
         "LairOwnerID" INTEGER DEFAULT -1,
         "ActiveID" TEXT DEFAULT '',
-        "Domain" TEXT NOT NULL DEFAULT 'Private',
+        "Domain" TEXT NOT NULL DEFAULT 'Public',
         "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),
         PRIMARY KEY ("EncounterID" AUTOINCREMENT),
         FOREIGN KEY ("Domain") REFERENCES "User" ("UserName") ON DELETE CASCADE ON UPDATE CASCADE

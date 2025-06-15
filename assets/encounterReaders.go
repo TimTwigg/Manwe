@@ -14,8 +14,8 @@ import (
 	errors "github.com/pkg/errors"
 )
 
-func ReadEncounterByID(id int) (encounters.Encounter, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairOwnerID, ActiveID FROM Encounter WHERE EncounterID = ?", id)
+func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairOwnerID, ActiveID FROM Encounter WHERE EncounterID = ? AND (Domain = 'Public' OR Domain = ?)", id, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
@@ -85,7 +85,7 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 			return encounters.Encounter{}, err
 		}
 
-		statblock, err := ReadStatBlockByID(entityID)
+		statblock, err := ReadStatBlockByID(entityID, userid)
 		if err != nil {
 			logger.Error("Error reading statblock: " + err.Error())
 			return encounters.Encounter{}, err
@@ -146,8 +146,8 @@ func ReadEncounterByID(id int) (encounters.Encounter, error) {
 	return encounter, nil
 }
 
-func ReadEncounterByName(name string) (encounters.Encounter, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID FROM Encounter WHERE name = ?", name)
+func ReadEncounterByName(name string, userid string) (encounters.Encounter, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID FROM Encounter WHERE name = ? AND (Domain = 'Public' OR Domain = ?)", name, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
@@ -165,11 +165,11 @@ func ReadEncounterByName(name string) (encounters.Encounter, error) {
 		return encounters.Encounter{}, errors.New("No Encounter found with name: " + name)
 	}
 
-	return ReadEncounterByID(id)
+	return ReadEncounterByID(id, userid)
 }
 
-func ReadEncounterOverviewByID(id int) (encounters.EncounterOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter WHERE EncounterID = ?", id)
+func ReadEncounterOverviewByID(id int, userid string) (encounters.EncounterOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter WHERE EncounterID = ? AND (Domain = 'Public' OR Domain = ?)", id, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.EncounterOverview{}, err
@@ -204,8 +204,8 @@ func ReadEncounterOverviewByID(id int) (encounters.EncounterOverview, error) {
 	return encounter, nil
 }
 
-func ReadEncounterOverviewByName(name string) (encounters.EncounterOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID FROM Encounter WHERE Name = ?", name)
+func ReadEncounterOverviewByName(name string, userid string) (encounters.EncounterOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID FROM Encounter WHERE Name = ? AND (Domain = 'Public' OR Domain = ?)", name, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.EncounterOverview{}, err
@@ -223,11 +223,11 @@ func ReadEncounterOverviewByName(name string) (encounters.EncounterOverview, err
 		return encounters.EncounterOverview{}, errors.New("No Encounter found with name: " + name)
 	}
 
-	return ReadEncounterOverviewByID(id)
+	return ReadEncounterOverviewByID(id, userid)
 }
 
-func ReadAllEncounterOverviews() ([]encounters.EncounterOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter")
+func ReadAllEncounterOverviews(userid string) ([]encounters.EncounterOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter WHERE (Domain = 'Public' OR Domain = ?)", userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return nil, err
@@ -272,7 +272,7 @@ func ReadAllEncounterOverviews() ([]encounters.EncounterOverview, error) {
 	return encs, nil
 }
 
-func ReadEncounterByAccessType(accessType string, accessor string) (encounters.Encounter, error) {
+func ReadEncounterByAccessType(accessType string, accessor string, userid string) (encounters.Encounter, error) {
 	switch accessType {
 	case "id":
 		id, err := strconv.Atoi(accessor)
@@ -280,16 +280,16 @@ func ReadEncounterByAccessType(accessType string, accessor string) (encounters.E
 			logger.Error("Error converting id to int: " + err.Error())
 			return encounters.Encounter{}, err
 		}
-		return ReadEncounterByID(id)
+		return ReadEncounterByID(id, userid)
 	case "name":
-		return ReadEncounterByName(accessor)
+		return ReadEncounterByName(accessor, userid)
 	default:
 		logger.Error("Invalid access type: " + accessType)
 		return encounters.Encounter{}, errors.New("Invalid access type: " + accessType)
 	}
 }
 
-func ReadEncounterOverviewByAccessType(accessType string, accessor string) (encounters.EncounterOverview, error) {
+func ReadEncounterOverviewByAccessType(accessType string, accessor string, userid string) (encounters.EncounterOverview, error) {
 	switch accessType {
 	case "id":
 		id, err := strconv.Atoi(accessor)
@@ -297,9 +297,9 @@ func ReadEncounterOverviewByAccessType(accessType string, accessor string) (enco
 			logger.Error("Error converting id to int: " + err.Error())
 			return encounters.EncounterOverview{}, err
 		}
-		return ReadEncounterOverviewByID(id)
+		return ReadEncounterOverviewByID(id, userid)
 	case "name":
-		return ReadEncounterOverviewByName(accessor)
+		return ReadEncounterOverviewByName(accessor, userid)
 	default:
 		logger.Error("Invalid access type: " + accessType)
 		return encounters.EncounterOverview{}, errors.New("Invalid access type: " + accessType)

@@ -8,7 +8,7 @@ import (
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
 )
 
-func EncounterOverviewHandler(w http.ResponseWriter, r *http.Request) {
+func EncounterOverviewHandler(w http.ResponseWriter, r *http.Request, userid string) {
 	switch r.Method {
 	case http.MethodOptions:
 		logger.OptionsRequest("EncounterOverviewHandler: OPTIONS request")
@@ -17,7 +17,7 @@ func EncounterOverviewHandler(w http.ResponseWriter, r *http.Request) {
 		logger.GetRequest("EncounterOverviewHandler: GET request")
 		logger.GetRequest("Requesting all encounter overviews")
 
-		encounters, err := assets.ReadAllEncounterOverviews()
+		encounters, err := assets.ReadAllEncounterOverviews(userid)
 		if err != nil {
 			http.Error(w, "Error reading encounters", http.StatusInternalServerError)
 			return

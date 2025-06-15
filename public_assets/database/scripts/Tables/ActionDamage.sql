@@ -14,13 +14,10 @@ CREATE TABLE
         "DC" INTEGER DEFAULT 0,
         "HalfDamage" TEXT DEFAULT '' CHECK ("HalfDamage" IN ('X', '')) COLLATE NOCASE,
         "SaveDmgNote" TEXT DEFAULT '',
-        "Domain" TEXT NOT NULL DEFAULT 'Private',
-        "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),
         PRIMARY KEY ("EntityID", "ActionID", "DamageID"),
         FOREIGN KEY ("EntityID") REFERENCES "Entity" ("EntityID") ON DELETE CASCADE,
         FOREIGN KEY ("EntityID", "ActionID") REFERENCES "Action" ("EntityID", "ActionID") ON DELETE CASCADE,
         FOREIGN KEY ("Type") REFERENCES "DamageType" ("DamageType"),
         FOREIGN KEY ("Type2") REFERENCES "DamageType" ("DamageType"),
-        FOREIGN KEY ("Ability") REFERENCES "Ability" ("Ability"),
-        FOREIGN KEY ("Domain") REFERENCES "User" ("UserName") ON DELETE CASCADE ON UPDATE CASCADE
+        FOREIGN KEY ("Ability") REFERENCES "Ability" ("Ability")
     );
