@@ -10,9 +10,6 @@ import (
 
 func StatBlockOverviewHandler(w http.ResponseWriter, r *http.Request, userid string) {
 	switch r.Method {
-	case http.MethodOptions:
-		logger.OptionsRequest("StatBlockOverviewHandler: OPTIONS request")
-		w.WriteHeader(http.StatusOK)
 	case http.MethodGet:
 		logger.GetRequest("StatBlockOverviewHandler: GET request")
 		logger.GetRequest("Requesting all statblock overviews")

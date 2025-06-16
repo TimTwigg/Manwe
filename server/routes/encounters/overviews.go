@@ -10,9 +10,6 @@ import (
 
 func EncounterOverviewHandler(w http.ResponseWriter, r *http.Request, userid string) {
 	switch r.Method {
-	case http.MethodOptions:
-		logger.OptionsRequest("EncounterOverviewHandler: OPTIONS request")
-		w.WriteHeader(http.StatusOK)
 	case http.MethodGet:
 		logger.GetRequest("EncounterOverviewHandler: GET request")
 		logger.GetRequest("Requesting all encounter overviews")

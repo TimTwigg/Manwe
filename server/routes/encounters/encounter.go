@@ -14,9 +14,6 @@ import (
 
 func EncounterHandler(w http.ResponseWriter, r *http.Request, userid string) {
 	switch r.Method {
-	case http.MethodOptions:
-		logger.OptionsRequest("EncounterHandler: OPTIONS request")
-		w.WriteHeader(http.StatusOK)
 	case http.MethodGet:
 		logger.GetRequest("EncounterHandler: GET request")
 		defer r.Body.Close()

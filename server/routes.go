@@ -15,10 +15,10 @@ import (
 
 func CORSMiddleware(next http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, r *http.Request) {
-		logger.Info("Request received: [" + r.Method + "] " + r.URL.Path)
 		response.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 		response.Header().Set("Access-Control-Allow-Credentials", "true")
 		if r.Method == "OPTIONS" {
+			logger.OptionsRequest(r.URL.Path)
 			response.Header().Set("Access-Control-Allow-Methods", "*")
 			response.Header().Set("Access-Control-Allow-Headers",
 				strings.Join(append([]string{"Content-Type"},
@@ -32,7 +32,6 @@ func CORSMiddleware(next http.HandlerFunc) http.Handler {
 
 func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	userid, _ := server_utils.GetSessionUserID(r)
-	logger.Info("User ID: " + userid)
 	err := asset_utils.UpsertUser(asset_utils.DB, userid)
 	if err != nil {
 		logger.Error("Error upserting user: " + err.Error())

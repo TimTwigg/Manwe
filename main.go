@@ -17,6 +17,7 @@ import (
 	session "github.com/supertokens/supertokens-golang/recipe/session"
 	thirdparty "github.com/supertokens/supertokens-golang/recipe/thirdparty"
 	tpmodels "github.com/supertokens/supertokens-golang/recipe/thirdparty/tpmodels"
+	usermetadata "github.com/supertokens/supertokens-golang/recipe/usermetadata"
 	supertokens "github.com/supertokens/supertokens-golang/supertokens"
 )
 
@@ -95,6 +96,7 @@ func main() {
 					"tim@twiggusa.com",
 				},
 			}),
+			usermetadata.Init(nil),
 			session.Init(nil),
 		},
 	})
