@@ -9,6 +9,7 @@
 - Store email in user metadata
 - API for user metadata
     - Get and Set
+- Create campaigns as actual objects so that players can be grouped in a campaign and easily all pulled into a new encounter
 
 # Database Design
 

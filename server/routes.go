@@ -7,6 +7,7 @@ import (
 	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
 	conditionroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/conditions"
 	encounterroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/encounters"
+	metadataroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/metadata"
 	statblockroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/statblocks"
 	server_utils "github.com/TimTwigg/EncounterManagerBackend/server/utils"
 	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
@@ -49,6 +50,8 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 		encounterroutes.EncounterOverviewHandler(w, r, userid)
 	} else if r.URL.Path == "/condition/all" {
 		conditionroutes.AllConditionsHandler(w, r, userid)
+	} else if r.URL.Path == "/metadata" {
+		metadataroutes.MetadataHandler(w, r, userid)
 	} else {
 		logger.Error("Unhandled route: " + r.URL.Path)
 		http.Error(w, "Not Found", http.StatusNotFound)

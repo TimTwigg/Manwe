@@ -82,14 +82,15 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request, userid string) {
 			return
 		}
 
-		logger.PostRequest("Setting Encounter: " + enc.Name)
-
 		enc, err := assets.SetEncounter(enc, userid)
 		if err != nil {
 			logger.Error("EncounterHandler: Error setting encounter: " + err.Error())
 			http.Error(w, "Error setting encounter", http.StatusInternalServerError)
 			return
 		}
+
+		logger.PostRequest("Set Encounter Successfully: " + enc.Name)
+
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(enc); err != nil {
 			logger.Error("EncounterHandler: Error encoding JSON: " + err.Error())
