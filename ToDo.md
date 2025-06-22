@@ -6,9 +6,6 @@
 - Rework so that stats are not hardcoded - allow custom stats and saving throws
     - Think this is done - review
 - How to handle entities in encounter being non-statblocks (ie players or temp npcs)
-- Store email in user metadata
-- API for user metadata
-    - Get and Set
 - Create campaigns as actual objects so that players can be grouped in a campaign and easily all pulled into a new encounter
 
 # Database Design

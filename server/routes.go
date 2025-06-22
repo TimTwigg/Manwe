@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
 	conditionroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/conditions"
 	encounterroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/encounters"
 	metadataroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/metadata"
@@ -33,12 +32,6 @@ func CORSMiddleware(next http.HandlerFunc) http.Handler {
 
 func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	userid, _ := server_utils.GetSessionUserID(r)
-	err := asset_utils.UpsertUser(asset_utils.DB, userid)
-	if err != nil {
-		logger.Error("Error upserting user: " + err.Error())
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
 
 	if r.URL.Path == "/statblock" {
 		statblockroutes.StatBlockHandler(w, r, userid)

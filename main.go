@@ -14,6 +14,7 @@ import (
 	dashboard "github.com/supertokens/supertokens-golang/recipe/dashboard"
 	dashboardmodels "github.com/supertokens/supertokens-golang/recipe/dashboard/dashboardmodels"
 	emailpassword "github.com/supertokens/supertokens-golang/recipe/emailpassword"
+	epmodels "github.com/supertokens/supertokens-golang/recipe/emailpassword/epmodels"
 	session "github.com/supertokens/supertokens-golang/recipe/session"
 	thirdparty "github.com/supertokens/supertokens-golang/recipe/thirdparty"
 	tpmodels "github.com/supertokens/supertokens-golang/recipe/thirdparty/tpmodels"
@@ -73,7 +74,26 @@ func main() {
 			WebsiteBasePath: &websiteBasePath,
 		},
 		RecipeList: []supertokens.Recipe{
-			emailpassword.Init(nil),
+			emailpassword.Init(&epmodels.TypeInput{
+				// Override the SignUp function to add ID to database
+				Override: &epmodels.OverrideStruct{
+					Functions: func(originalImplementation epmodels.RecipeInterface) epmodels.RecipeInterface {
+						originalSignUp := *originalImplementation.SignUp
+						(*originalImplementation.SignUp) = func(email, password, tenantId string, userContext supertokens.UserContext) (epmodels.SignUpResponse, error) {
+							response, err := originalSignUp(email, password, tenantId, userContext)
+							if err != nil {
+								return epmodels.SignUpResponse{}, err
+							}
+							if response.OK != nil {
+								user := response.OK.User
+								_ = asset_utils.UpsertUser(asset_utils.DB, user.ID)
+							}
+							return response, nil
+						}
+						return originalImplementation
+					},
+				},
+			}),
 			thirdparty.Init(&tpmodels.TypeInput{
 				SignInAndUpFeature: tpmodels.TypeInputSignInAndUp{
 					Providers: []tpmodels.ProviderInput{
@@ -88,6 +108,24 @@ func main() {
 								},
 							},
 						},
+					},
+				},
+				// Override the SignUp function to add ID to database
+				Override: &tpmodels.OverrideStruct{
+					Functions: func(originalImplementation tpmodels.RecipeInterface) tpmodels.RecipeInterface {
+						originalSignInUp := *originalImplementation.SignInUp
+						(*originalImplementation.SignInUp) = func(thirdPartyID string, thirdPartyUserID string, email string, oAuthTokens map[string]interface{}, rawUserInfoFromProvider tpmodels.TypeRawUserInfoFromProvider, tenantId string, userContext *map[string]interface{}) (tpmodels.SignInUpResponse, error) {
+							response, err := originalSignInUp(thirdPartyID, thirdPartyUserID, email, oAuthTokens, rawUserInfoFromProvider, tenantId, userContext)
+							if err != nil {
+								return tpmodels.SignInUpResponse{}, err
+							}
+							if response.OK != nil {
+								user := response.OK.User
+								_ = asset_utils.UpsertUser(asset_utils.DB, user.ID)
+							}
+							return response, nil
+						}
+						return originalImplementation
 					},
 				},
 			}),
