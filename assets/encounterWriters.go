@@ -1,12 +1,12 @@
 package assets
 
 import (
-	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
-	encounters "github.com/TimTwigg/EncounterManagerBackend/types/encounters"
-	entities "github.com/TimTwigg/EncounterManagerBackend/types/entities"
-	error_utils "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
-	utils "github.com/TimTwigg/EncounterManagerBackend/utils/functions"
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
+	encounters "github.com/TimTwigg/Manwe/types/encounters"
+	entities "github.com/TimTwigg/Manwe/types/entities"
+	error_utils "github.com/TimTwigg/Manwe/utils/errors"
+	utils "github.com/TimTwigg/Manwe/utils/functions"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 )
 
 func encounterBelongsToUser(encounterID int, userid string) (bool, error) {
@@ -30,6 +30,22 @@ func encounterBelongsToUser(encounterID int, userid string) (bool, error) {
 	return true, nil
 }
 
+func encounterExists(encounterID int) bool {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT COUNT(*) FROM Encounter WHERE EncounterID = ?", encounterID)
+	if err != nil {
+		logger.Error("Error checking EncounterID: " + err.Error())
+		return false
+	}
+	var count int
+	if rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			logger.Error("Error scanning count from Encounter: " + err.Error())
+			return false
+		}
+	}
+	return count > 0
+}
+
 func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 	// Empty the EncounterEntities table for this encounter
 	_, err := asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM EncounterEntities WHERE EncounterID = ?", encounterID)
@@ -47,7 +63,7 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 	for row, creature := range creatures {
 		_, err := asset_utils.ExecSQL(
 			asset_utils.DB,
-			"INSERT INTO EncounterEntities (EncounterID, RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Concentration, Notes, IsHostile, EncounterLocked, ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO EncounterEntities (EncounterID, RowID, StatBlockID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Concentration, Notes, IsHostile, EncounterLocked, ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 			encounterID,
 			row+1,
 			creature.DBID,
@@ -88,7 +104,7 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 }
 
 func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Encounter, error) {
-	if encounter.ID == 0 {
+	if encounter.ID == 0 || !encounterExists(encounter.ID) {
 		res, err := asset_utils.ExecSQL(
 			asset_utils.DB,
 			"INSERT INTO Encounter (Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairOwnerID, ActiveID, Domain) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -115,12 +131,6 @@ func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Enc
 			return encounters.Encounter{}, err
 		}
 		encounter.ID = int(id)
-		err = SetEncounterEntities(encounter.Entities, encounter.ID)
-		if err != nil {
-			logger.Error("Error setting Encounter entity: " + err.Error())
-			return encounters.Encounter{}, err
-		}
-		return encounter, nil
 	} else {
 		//  Check if the encounter belongs to the user
 		auth, err := encounterBelongsToUser(encounter.ID, userid)
@@ -154,14 +164,14 @@ func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Enc
 			logger.Error("Error updating Encounter: " + err.Error())
 			return encounters.Encounter{}, err
 		}
-		err = SetEncounterEntities(encounter.Entities, encounter.ID)
-		if err != nil {
-			logger.Error("Error setting Encounter entity: " + err.Error())
-			return encounters.Encounter{}, err
-		}
-
-		return encounter, nil
 	}
+
+	err := SetEncounterEntities(encounter.Entities, encounter.ID)
+	if err != nil {
+		logger.Error("Error setting Encounter entity: " + err.Error())
+		return encounters.Encounter{}, err
+	}
+	return encounter, nil
 }
 
 func DeleteEncounter(encounterID int, userid string) error {

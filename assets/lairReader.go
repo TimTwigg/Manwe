@@ -3,15 +3,15 @@ package assets
 import (
 	"strconv"
 
-	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
-	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
-	stat_blocks "github.com/TimTwigg/EncounterManagerBackend/types/stat_blocks"
-	error_utils "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
+	generics "github.com/TimTwigg/Manwe/types/generics"
+	stat_blocks "github.com/TimTwigg/Manwe/types/stat_blocks"
+	error_utils "github.com/TimTwigg/Manwe/utils/errors"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 )
 
 func ReadLairByEntityID(id int) (stat_blocks.Lair, error) {
-	lair_row, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, Initiative FROM Lair WHERE EntityID = ?", id)
+	lair_row, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, Initiative FROM Lair WHERE StatBlockID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.Lair{}, error_utils.ParseError{Message: err.Error()}
@@ -32,7 +32,7 @@ func ReadLairByEntityID(id int) (stat_blocks.Lair, error) {
 		block := stat_blocks.Lair{Name: Name, OwningEntityDBID: id, Description: Description, Initiative: Initiative, Actions: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}, RegionalEffects: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}}
 
 		// Read Lair Actions
-		lair_actions_row, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, IsRegional FROM LairActionV WHERE EntityID = ?", id)
+		lair_actions_row, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, IsRegional FROM LairActionV WHERE StatBlockID = ?", id)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
 			return stat_blocks.Lair{}, error_utils.ParseError{Message: err.Error()}

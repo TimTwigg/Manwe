@@ -1,7 +1,7 @@
 CREATE VIEW
     SuperActionHV AS
 SELECT
-    EntityID,
+    StatBlockID,
     Type,
     Description,
     Points,

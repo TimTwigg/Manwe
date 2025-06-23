@@ -3,7 +3,7 @@ package asset_utils
 import (
 	"database/sql"
 
-	io "github.com/TimTwigg/EncounterManagerBackend/utils/io"
+	io "github.com/TimTwigg/Manwe/utils/io"
 	_ "modernc.org/sqlite"
 )
 

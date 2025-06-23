@@ -1,8 +1,8 @@
 package entities
 
 import (
-	"github.com/TimTwigg/EncounterManagerBackend/types/generics"
-	stat_blocks "github.com/TimTwigg/EncounterManagerBackend/types/stat_blocks"
+	"github.com/TimTwigg/Manwe/types/generics"
+	stat_blocks "github.com/TimTwigg/Manwe/types/stat_blocks"
 )
 
 type EntityType int

@@ -3,8 +3,6 @@
 - Allow multiple entities with same name
     - DB allows, but parsing needs to handle this
 - Pagination in api calls
-- Rework so that stats are not hardcoded - allow custom stats and saving throws
-    - Think this is done - review
 - How to handle entities in encounter being non-statblocks (ie players or temp npcs)
 - Create campaigns as actual objects so that players can be grouped in a campaign and easily all pulled into a new encounter
 
@@ -15,7 +13,7 @@
 ### Notes
 
 - Entities created in encounters as custom entries or as players are stored in Entity table.
-    - RecordSource column defines what kind of entity it is:
+    - RecordType column defines what kind of entity it is:
         - "Statblock"
             - Standard or custom entities which have a stat block. Equivalent to standard / custom stat blocks in DDB Encounter Manager.
         - "Player"

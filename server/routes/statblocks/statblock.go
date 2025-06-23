@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
-	assets "github.com/TimTwigg/EncounterManagerBackend/assets"
-	server_utils "github.com/TimTwigg/EncounterManagerBackend/server/utils"
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	assets "github.com/TimTwigg/Manwe/assets"
+	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
+	server_utils "github.com/TimTwigg/Manwe/server/utils"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 )
 
 func StatBlockHandler(w http.ResponseWriter, r *http.Request, userid string) {
@@ -44,7 +45,7 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request, userid string) {
 		switch detail {
 		case 1:
 			// Read the statblock overview from the database
-			statBlockOverview, err := assets.ReadStatBlockOverviewByAccessType(accessType, accessor, userid)
+			statBlockOverview, err := assets.ReadStatBlockOverviewByAccessType(accessType, accessor, userid, asset_utils.STATBLOCK)
 			if err != nil {
 				http.Error(w, "StatBlock not found", server_utils.ErrorStatus(err))
 				return
@@ -57,7 +58,7 @@ func StatBlockHandler(w http.ResponseWriter, r *http.Request, userid string) {
 			}
 		case 2:
 			// Read the statblock from the database
-			statBlock, err := assets.ReadStatBlockByAccessType(accessType, accessor, userid)
+			statBlock, err := assets.ReadStatBlockByAccessType(accessType, accessor, userid, asset_utils.STATBLOCK)
 			if err != nil {
 				http.Error(w, "StatBlock not found", server_utils.ErrorStatus(err))
 				return

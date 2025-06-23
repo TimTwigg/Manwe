@@ -4,18 +4,18 @@ import (
 	"strconv"
 	"strings"
 
-	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
-	actions "github.com/TimTwigg/EncounterManagerBackend/types/actions"
-	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
-	stat_blocks "github.com/TimTwigg/EncounterManagerBackend/types/stat_blocks"
-	error_utils "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
+	actions "github.com/TimTwigg/Manwe/types/actions"
+	generics "github.com/TimTwigg/Manwe/types/generics"
+	stat_blocks "github.com/TimTwigg/Manwe/types/stat_blocks"
+	error_utils "github.com/TimTwigg/Manwe/utils/errors"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 	errors "github.com/pkg/errors"
 )
 
-func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
-	// Read Entity information
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, ChallengeRating, ProficiencyBonus, Source, Size, Type, Alignment, ArmorClass, HitPoints1, HitPoints2, SWalk, SFly, SClimb, SSwim, SBurrow, ArmorType FROM Entity WHERE EntityID = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')", id, userid)
+func ReadStatBlockByID(id int, userid string, restriction asset_utils.EntityTypeRestriction) (stat_blocks.StatBlock, error) {
+	// Read StatBlock information
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT StatBlockID, Name, ChallengeRating, ProficiencyBonus, Source, Size, Type, Alignment, ArmorClass, HitPoints1, HitPoints2, SWalk, SFly, SClimb, SSwim, SBurrow, ArmorType FROM StatBlock WHERE StatBlockID = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')"+asset_utils.StatBlockRestrictionClause(restriction, true), id, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, err
@@ -42,7 +42,7 @@ func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 			&block.Stats.Speed.Burrow,
 			&block.Details.ArmorType,
 		); err != nil {
-			logger.Error("Error Scanning Entity Row: " + err.Error())
+			logger.Error("Error Scanning StatBlock Row: " + err.Error())
 			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
 	} else {
@@ -66,7 +66,7 @@ func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 	block.BonusActions = make([]generics.SimpleItem, 0)
 
 	// Read Abilities
-	ability_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Ability, Value FROM EntityStats WHERE EntityID = ?", id)
+	ability_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Ability, Value FROM EntityStats WHERE StatBlockID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
@@ -91,7 +91,7 @@ func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 	}
 
 	// Read Modifiers
-	mod_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Name, Value, Description FROM Modifiers WHERE EntityID = ?", id)
+	mod_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Name, Value, Description FROM Modifiers WHERE StatBlockID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
@@ -133,7 +133,7 @@ func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 	}
 
 	// Read Proficiencies
-	prof_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Name, Level, Override FROM Proficiencies WHERE EntityID = ?", id)
+	prof_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Name, Level, Override FROM Proficiencies WHERE StatBlockID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
@@ -166,7 +166,7 @@ func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 	}
 
 	// Read Languages
-	lang_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Language, Description FROM SpokenLanguage WHERE EntityID = ?", id)
+	lang_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Language, Description FROM SpokenLanguage WHERE StatBlockID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
@@ -194,7 +194,7 @@ func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 	}
 
 	// Read Actions
-	action_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT ActionID, Name, AttackType, HitModifier, Reach, Targets, Description FROM Action WHERE EntityID = ?", id)
+	action_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT ActionID, Name, AttackType, HitModifier, Reach, Targets, Description FROM Action WHERE StatBlockID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
@@ -225,7 +225,7 @@ func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 		var action = actions.Action{Name: Name, AttackType: AttackType, ToHitModifier: HitModifier, Reach: Reach, Targets: Targets, AdditionalDescription: Description}
 
 		// Create Damage array
-		dmg_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Amount, Type, AltDmgActive, Amount2, Type2, AltDmgNote, SaveDmgActive, Ability, DC, HalfDamage, SaveDmgNote FROM ActionDamage WHERE EntityID = ? and ActionID = ?", id, ActionID)
+		dmg_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Amount, Type, AltDmgActive, Amount2, Type2, AltDmgNote, SaveDmgActive, Ability, DC, HalfDamage, SaveDmgNote FROM ActionDamage WHERE StatBlockID = ? and ActionID = ?", id, ActionID)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
 			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
@@ -297,7 +297,7 @@ func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 	}
 
 	// Read Bonus Actions and Reactions
-	simple_actions_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Name, Description FROM SimpleAction WHERE EntityID = ?", id)
+	simple_actions_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Name, Description FROM SimpleAction WHERE StatBlockID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
@@ -328,7 +328,7 @@ func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 	}
 
 	// Read Legendary Actions
-	super_hdr_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Description, Points FROM SuperActionHV WHERE EntityID = ?", id)
+	super_hdr_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Type, Description, Points FROM SuperActionHV WHERE StatBlockID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
@@ -359,7 +359,7 @@ func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 		}
 
 		// Read Super Actions
-		super_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, Points FROM SuperActionV WHERE EntityID = ? and Type = ?", id, HType)
+		super_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, Points FROM SuperActionV WHERE StatBlockID = ? and Type = ?", id, HType)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
 			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
@@ -400,9 +400,9 @@ func ReadStatBlockByID(id int, userid string) (stat_blocks.StatBlock, error) {
 	return block, nil
 }
 
-func ReadStatBlockByName(name string, userid string) (stat_blocks.StatBlock, error) {
-	// Read Entity information
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID FROM Entity WHERE name = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')", name, userid)
+func ReadStatBlockByName(name string, userid string, restriction asset_utils.EntityTypeRestriction) (stat_blocks.StatBlock, error) {
+	// Read StatBlock information
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT StatBlockID FROM StatBlock WHERE name = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')"+asset_utils.StatBlockRestrictionClause(restriction, true), name, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
@@ -420,11 +420,11 @@ func ReadStatBlockByName(name string, userid string) (stat_blocks.StatBlock, err
 		logger.Error("No stat block found with name: " + name)
 		return stat_blocks.StatBlock{}, errors.New("No stat block found with name: " + name)
 	}
-	return ReadStatBlockByID(id, userid)
+	return ReadStatBlockByID(id, userid, restriction)
 }
 
-func ReadStatBlockOverviewByID(id int, userid string) (stat_blocks.StatBlockOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, Type, Size, ChallengeRating, Source FROM Entity WHERE EntityID = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')", id, userid)
+func ReadStatBlockOverviewByID(id int, userid string, restriction asset_utils.EntityTypeRestriction) (stat_blocks.StatBlockOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT StatBlockID, Name, Type, Size, ChallengeRating, Source FROM StatBlock WHERE StatBlockID = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')"+asset_utils.StatBlockRestrictionClause(restriction, true), id, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
@@ -440,7 +440,7 @@ func ReadStatBlockOverviewByID(id int, userid string) (stat_blocks.StatBlockOver
 			&block.ChallengeRating,
 			&block.Source,
 		); err != nil {
-			logger.Error("Error Scanning Entity Row: " + err.Error())
+			logger.Error("Error Scanning StatBlock Row: " + err.Error())
 			return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
 		}
 	} else {
@@ -451,8 +451,8 @@ func ReadStatBlockOverviewByID(id int, userid string) (stat_blocks.StatBlockOver
 	return block, nil
 }
 
-func ReadStatBlockOverviewByName(name string, userid string) (stat_blocks.StatBlockOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID FROM Entity WHERE name = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')", name, userid)
+func ReadStatBlockOverviewByName(name string, userid string, restriction asset_utils.EntityTypeRestriction) (stat_blocks.StatBlockOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT StatBlockID FROM StatBlock WHERE name = ? AND (Domain = 'Public' OR Domain = ? OR Published = 'X')"+asset_utils.StatBlockRestrictionClause(restriction, true), name, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
@@ -472,11 +472,11 @@ func ReadStatBlockOverviewByName(name string, userid string) (stat_blocks.StatBl
 		return stat_blocks.StatBlockOverview{}, errors.New("No stat block found with name: " + name)
 	}
 
-	return ReadStatBlockOverviewByID(id, userid)
+	return ReadStatBlockOverviewByID(id, userid, restriction)
 }
 
-func ReadAllStatBlockOverviews(userid string) ([]stat_blocks.StatBlockOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EntityID, Name, Type, Size, ChallengeRating, Source FROM Entity WHERE (Domain = 'Public' OR Domain = ? OR Published = 'X')", userid)
+func ReadAllStatBlockOverviews(userid string, restriction asset_utils.EntityTypeRestriction) ([]stat_blocks.StatBlockOverview, error) {
+	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT StatBlockID, Name, Type, Size, ChallengeRating, Source FROM StatBlock WHERE (Domain = 'Public' OR Domain = ? OR Published = 'X')"+asset_utils.StatBlockRestrictionClause(restriction, true), userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return nil, error_utils.ParseError{Message: err.Error()}
@@ -498,7 +498,7 @@ func ReadAllStatBlockOverviews(userid string) ([]stat_blocks.StatBlockOverview, 
 			&CR,
 			&Source,
 		); err != nil {
-			logger.Error("Error Scanning Entity Row: " + err.Error())
+			logger.Error("Error Scanning StatBlock Row: " + err.Error())
 			return nil, error_utils.ParseError{Message: err.Error()}
 		}
 		statblocks = append(statblocks, stat_blocks.StatBlockOverview{ID: ID, Name: Name, Type: Type, Size: Size, ChallengeRating: CR, Source: Source})
@@ -506,7 +506,7 @@ func ReadAllStatBlockOverviews(userid string) ([]stat_blocks.StatBlockOverview, 
 	return statblocks, nil
 }
 
-func ReadStatBlockByAccessType(accessType string, accessor string, userid string) (stat_blocks.StatBlock, error) {
+func ReadStatBlockByAccessType(accessType string, accessor string, userid string, restriction asset_utils.EntityTypeRestriction) (stat_blocks.StatBlock, error) {
 	switch accessType {
 	case "id":
 		id, err := strconv.Atoi(accessor)
@@ -514,16 +514,16 @@ func ReadStatBlockByAccessType(accessType string, accessor string, userid string
 			logger.Error("Error converting id to int: " + err.Error())
 			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}
 		}
-		return ReadStatBlockByID(id, userid)
+		return ReadStatBlockByID(id, userid, restriction)
 	case "name":
-		return ReadStatBlockByName(accessor, userid)
+		return ReadStatBlockByName(accessor, userid, restriction)
 	default:
 		logger.Error("Invalid access type: " + accessType)
 		return stat_blocks.StatBlock{}, errors.New("Invalid access type: " + accessType)
 	}
 }
 
-func ReadStatBlockOverviewByAccessType(accessType string, accessor string, userid string) (stat_blocks.StatBlockOverview, error) {
+func ReadStatBlockOverviewByAccessType(accessType string, accessor string, userid string, restriction asset_utils.EntityTypeRestriction) (stat_blocks.StatBlockOverview, error) {
 	switch accessType {
 	case "id":
 		id, err := strconv.Atoi(accessor)
@@ -531,9 +531,9 @@ func ReadStatBlockOverviewByAccessType(accessType string, accessor string, useri
 			logger.Error("Error converting id to int: " + err.Error())
 			return stat_blocks.StatBlockOverview{}, error_utils.ParseError{Message: err.Error()}
 		}
-		return ReadStatBlockOverviewByID(id, userid)
+		return ReadStatBlockOverviewByID(id, userid, restriction)
 	case "name":
-		return ReadStatBlockOverviewByName(accessor, userid)
+		return ReadStatBlockOverviewByName(accessor, userid, restriction)
 	default:
 		logger.Error("Invalid access type: " + accessType)
 		return stat_blocks.StatBlockOverview{}, errors.New("Invalid access type: " + accessType)

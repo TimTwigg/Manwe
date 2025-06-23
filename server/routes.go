@@ -4,12 +4,13 @@ import (
 	"net/http"
 	"strings"
 
-	conditionroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/conditions"
-	encounterroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/encounters"
-	metadataroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/metadata"
-	statblockroutes "github.com/TimTwigg/EncounterManagerBackend/server/routes/statblocks"
-	server_utils "github.com/TimTwigg/EncounterManagerBackend/server/utils"
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	campaignroutes "github.com/TimTwigg/Manwe/server/routes/campaigns"
+	conditionroutes "github.com/TimTwigg/Manwe/server/routes/conditions"
+	encounterroutes "github.com/TimTwigg/Manwe/server/routes/encounters"
+	metadataroutes "github.com/TimTwigg/Manwe/server/routes/metadata"
+	statblockroutes "github.com/TimTwigg/Manwe/server/routes/statblocks"
+	server_utils "github.com/TimTwigg/Manwe/server/utils"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 	supertokens "github.com/supertokens/supertokens-golang/supertokens"
 )
 
@@ -33,7 +34,13 @@ func CORSMiddleware(next http.HandlerFunc) http.Handler {
 func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	userid, _ := server_utils.GetSessionUserID(r)
 
-	if r.URL.Path == "/statblock" {
+	if r.URL.Path == "/metadata" {
+		metadataroutes.MetadataHandler(w, r, userid)
+		// } else if r.URL.Path == "/support" {
+		// 	supportroutes.SupportHandler(w, r, userid)
+	} else if r.URL.Path == "/condition/all" {
+		conditionroutes.AllConditionsHandler(w, r, userid)
+	} else if r.URL.Path == "/statblock" {
 		statblockroutes.StatBlockHandler(w, r, userid)
 	} else if r.URL.Path == "/statblock/all" {
 		statblockroutes.StatBlockOverviewHandler(w, r, userid)
@@ -41,10 +48,10 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 		encounterroutes.EncounterHandler(w, r, userid)
 	} else if r.URL.Path == "/encounter/all" {
 		encounterroutes.EncounterOverviewHandler(w, r, userid)
-	} else if r.URL.Path == "/condition/all" {
-		conditionroutes.AllConditionsHandler(w, r, userid)
-	} else if r.URL.Path == "/metadata" {
-		metadataroutes.MetadataHandler(w, r, userid)
+	} else if r.URL.Path == "/campaign" || r.URL.Path == "/campaign/" {
+		campaignroutes.CampaignHandler(w, r, userid)
+	} else if r.URL.Path == "/campaign/all" {
+		campaignroutes.CampaignOverviewHandler(w, r, userid)
 	} else {
 		logger.Error("Unhandled route: " + r.URL.Path)
 		http.Error(w, "Not Found", http.StatusNotFound)

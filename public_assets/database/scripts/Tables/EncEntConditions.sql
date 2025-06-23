@@ -6,5 +6,5 @@ CREATE TABLE
         "Duration" INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY ("EncounterID", "RowID", "Condition"),
         FOREIGN KEY ("EncounterID", "RowID") REFERENCES "EncounterEntities" ("EncounterID", "RowID") ON DELETE CASCADE,
-        FOREIGN KEY ("Condition") REFERENCES "Condition" ("Condition")
+        FOREIGN KEY ("Condition") REFERENCES "Condition" ("Condition") ON DELETE CASCADE
     )

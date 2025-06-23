@@ -1,7 +1,7 @@
 CREATE VIEW
     LairActionV AS
 SELECT
-    EntityID,
+    StatBlockID,
     Name,
     Description,
     coalesce(IsRegional, '') as IsRegional,

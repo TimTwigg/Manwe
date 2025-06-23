@@ -2,7 +2,7 @@ CREATE TABLE
     "EncounterEntities" (
         "EncounterID" INTEGER NOT NULL,
         "RowID" INTEGER NOT NULL,
-        "EntityID" INTEGER NOT NULL,
+        "StatBlockID" INTEGER NOT NULL,
         "Suffix" TEXT DEFAULT '',
         "Initiative" INTEGER DEFAULT 0,
         "MaxHitPoints" INTEGER NOT NULL,
@@ -16,5 +16,5 @@ CREATE TABLE
         "ID" TEXT NOT NULL DEFAULT '',
         PRIMARY KEY ("EncounterID", "RowID"),
         FOREIGN KEY ("EncounterID") REFERENCES "Encounter" ("EncounterID") ON DELETE CASCADE,
-        FOREIGN KEY ("EntityID") REFERENCES "Entity" ("EntityID")
+        FOREIGN KEY ("StatBlockID") REFERENCES "StatBlock" ("StatBlockID") ON DELETE CASCADE
     )

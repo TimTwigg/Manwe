@@ -4,13 +4,13 @@ import (
 	"strconv"
 	"strings"
 
-	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
-	encounters "github.com/TimTwigg/EncounterManagerBackend/types/encounters"
-	entities "github.com/TimTwigg/EncounterManagerBackend/types/entities"
-	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
-	error_utils "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
-	utils "github.com/TimTwigg/EncounterManagerBackend/utils/functions"
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
+	encounters "github.com/TimTwigg/Manwe/types/encounters"
+	entities "github.com/TimTwigg/Manwe/types/entities"
+	generics "github.com/TimTwigg/Manwe/types/generics"
+	error_utils "github.com/TimTwigg/Manwe/utils/errors"
+	utils "github.com/TimTwigg/Manwe/utils/functions"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 	errors "github.com/pkg/errors"
 )
 
@@ -56,7 +56,7 @@ func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
 		return encounters.Encounter{}, errors.New("No Encounter found with id: " + strconv.Itoa(id))
 	}
 
-	entity_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT RowID, EntityID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Concentration, Notes, IsHostile, EncounterLocked, ID FROM EncounterEntities WHERE EncounterID = ?", id)
+	entity_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT RowID, StatBlockID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Concentration, Notes, IsHostile, EncounterLocked, ID FROM EncounterEntities WHERE EncounterID = ?", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
@@ -85,13 +85,14 @@ func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
 			return encounters.Encounter{}, err
 		}
 
-		statblock, err := ReadStatBlockByID(entityID, userid)
+		statblock, err := ReadStatBlockByID(entityID, userid, asset_utils.ANY)
 		if err != nil {
 			logger.Error("Error reading statblock: " + err.Error())
 			return encounters.Encounter{}, err
 		}
 
 		entity := entities.Entity{
+			DBID:             entityID,
 			ID:               ID,
 			Name:             statblock.Name,
 			Suffix:           suffix,

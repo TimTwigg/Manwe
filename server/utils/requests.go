@@ -5,8 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	error_utils "github.com/TimTwigg/EncounterManagerBackend/utils/errors"
+	error_utils "github.com/TimTwigg/Manwe/utils/errors"
 	session "github.com/supertokens/supertokens-golang/recipe/session"
+	usermetadata "github.com/supertokens/supertokens-golang/recipe/usermetadata"
 )
 
 func GetDetailLevel(r *http.Request) (int, error) {
@@ -43,4 +44,17 @@ func GetSessionUserID(r *http.Request) (string, error) {
 		return "", error_utils.AuthError{Message: "No User ID Found"}
 	}
 	return userID, nil
+}
+
+func GetSessionUserEmail(userid string) (string, error) {
+	metadata, err := usermetadata.GetUserMetadata(userid)
+	if err != nil {
+		return "", err
+	}
+
+	email, ok := metadata["email"]
+	if !ok || email == "" {
+		return "", error_utils.AuthError{Message: "No Email Found"}
+	}
+	return email.(string), nil
 }

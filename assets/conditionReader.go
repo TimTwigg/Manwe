@@ -1,9 +1,9 @@
 package assets
 
 import (
-	asset_utils "github.com/TimTwigg/EncounterManagerBackend/assets/utils"
-	condition "github.com/TimTwigg/EncounterManagerBackend/types/conditions"
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
+	condition "github.com/TimTwigg/Manwe/types/conditions"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 )
 
 func ReadAllConditions(userid string) ([]condition.Condition, error) {

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	assets "github.com/TimTwigg/EncounterManagerBackend/assets"
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	assets "github.com/TimTwigg/Manwe/assets"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 )
 
 func EncounterOverviewHandler(w http.ResponseWriter, r *http.Request, userid string) {
@@ -26,6 +26,7 @@ func EncounterOverviewHandler(w http.ResponseWriter, r *http.Request, userid str
 			http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 			return
 		}
+
 	default:
 		http.Error(w, "Method not supported", http.StatusMethodNotAllowed)
 		return

@@ -1,6 +1,6 @@
 CREATE TABLE
     "Action" (
-        "EntityID" INTEGER NOT NULL,
+        "StatBlockID" INTEGER NOT NULL,
         "ActionID" INTEGER NOT NULL CHECK ("ActionID" >= 0),
         "Name" TEXT DEFAULT '',
         "AttackType" TEXT DEFAULT '',
@@ -8,6 +8,6 @@ CREATE TABLE
         "Reach" INTEGER DEFAULT 0,
         "Targets" INTEGER DEFAULT 0,
         "Description" TEXT DEFAULT '',
-        PRIMARY KEY ("EntityID", "ActionID"),
-        FOREIGN KEY ("EntityID") REFERENCES "Entity" ("EntityID") ON DELETE CASCADE
+        PRIMARY KEY ("StatBlockID", "ActionID"),
+        FOREIGN KEY ("StatBlockID") REFERENCES "StatBlock" ("StatBlockID") ON DELETE CASCADE
     )

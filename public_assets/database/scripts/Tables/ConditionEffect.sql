@@ -4,5 +4,5 @@ CREATE TABLE
         "EffectID" INTEGER NOT NULL,
         "Description" TEXT NOT NULL,
         PRIMARY KEY ("EffectID", "Condition"),
-        FOREIGN KEY ("Condition") REFERENCES "Condition" ("Condition")
+        FOREIGN KEY ("Condition") REFERENCES "Condition" ("Condition") ON DELETE CASCADE
     )

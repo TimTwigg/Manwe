@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	assets "github.com/TimTwigg/EncounterManagerBackend/assets"
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	assets "github.com/TimTwigg/Manwe/assets"
+	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 )
 
 func StatBlockOverviewHandler(w http.ResponseWriter, r *http.Request, userid string) {
@@ -14,7 +15,7 @@ func StatBlockOverviewHandler(w http.ResponseWriter, r *http.Request, userid str
 		logger.GetRequest("StatBlockOverviewHandler: GET request")
 		logger.GetRequest("Requesting all statblock overviews")
 
-		statblocks, err := assets.ReadAllStatBlockOverviews(userid)
+		statblocks, err := assets.ReadAllStatBlockOverviews(userid, asset_utils.STATBLOCK)
 		if err != nil {
 			http.Error(w, "Error reading statblocks", http.StatusInternalServerError)
 			return

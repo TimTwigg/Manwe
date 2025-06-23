@@ -1,7 +1,7 @@
 CREATE VIEW
     SuperActionV AS
 SELECT
-    EntityID,
+    StatBlockID,
     Type,
     Name,
     Description,

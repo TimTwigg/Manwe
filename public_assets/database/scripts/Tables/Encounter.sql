@@ -15,5 +15,6 @@ CREATE TABLE
         "Domain" TEXT NOT NULL DEFAULT 'Public',
         "Published" TEXT NOT NULL DEFAULT '' CHECK ("Published" in ('', 'X')),
         PRIMARY KEY ("EncounterID" AUTOINCREMENT),
+        FOREIGN KEY ("Campaign", "Domain") REFERENCES "Campaign" ("Campaign", "Domain") ON DELETE CASCADE ON UPDATE CASCADE,
         FOREIGN KEY ("Domain") REFERENCES "User" ("UserName") ON DELETE CASCADE ON UPDATE CASCADE
     )

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	assets "github.com/TimTwigg/EncounterManagerBackend/assets"
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	assets "github.com/TimTwigg/Manwe/assets"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 )
 
 func AllConditionsHandler(w http.ResponseWriter, r *http.Request, userid string) {

@@ -1,4 +1,4 @@
-module github.com/TimTwigg/EncounterManagerBackend
+module github.com/TimTwigg/Manwe
 
 go 1.23.0
 
@@ -15,13 +15,13 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/nyaruka/phonenumbers v1.0.73 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/supertokens/supertokens-golang v0.25.1 // indirect
 	github.com/twilio/twilio-go v0.26.0 // indirect

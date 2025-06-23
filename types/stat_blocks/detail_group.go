@@ -1,7 +1,7 @@
 package stat_blocks
 
 import (
-	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
+	generics "github.com/TimTwigg/Manwe/types/generics"
 )
 
 type LanguageInfo struct {

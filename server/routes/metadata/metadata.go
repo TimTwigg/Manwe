@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 	usermetadata "github.com/supertokens/supertokens-golang/recipe/usermetadata"
 )
 

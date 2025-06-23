@@ -1,9 +1,9 @@
 CREATE TABLE
     "SpokenLanguage" (
-        "EntityID" INTEGER NOT NULL,
+        "StatBlockID" INTEGER NOT NULL,
         "Language" TEXT NOT NULL,
         "Description" TEXT DEFAULT '',
-        PRIMARY KEY ("Language", "EntityID"),
-        FOREIGN KEY ("EntityID") REFERENCES "Entity" ("EntityID") ON DELETE CASCADE,
+        PRIMARY KEY ("Language", "StatBlockID"),
+        FOREIGN KEY ("StatBlockID") REFERENCES "StatBlock" ("StatBlockID") ON DELETE CASCADE,
         FOREIGN KEY ("Language") REFERENCES "Language" ("Language") ON DELETE CASCADE
     )

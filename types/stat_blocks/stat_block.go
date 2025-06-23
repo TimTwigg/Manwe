@@ -1,8 +1,8 @@
 package stat_blocks
 
 import (
-	actions "github.com/TimTwigg/EncounterManagerBackend/types/actions"
-	generics "github.com/TimTwigg/EncounterManagerBackend/types/generics"
+	actions "github.com/TimTwigg/Manwe/types/actions"
+	generics "github.com/TimTwigg/Manwe/types/generics"
 )
 
 type StatBlock struct {

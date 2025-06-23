@@ -1,8 +1,8 @@
 package encounters
 
 import (
-	entities "github.com/TimTwigg/EncounterManagerBackend/types/entities"
-	stat_blocks "github.com/TimTwigg/EncounterManagerBackend/types/stat_blocks"
+	entities "github.com/TimTwigg/Manwe/types/entities"
+	stat_blocks "github.com/TimTwigg/Manwe/types/stat_blocks"
 )
 
 type Encounter struct {

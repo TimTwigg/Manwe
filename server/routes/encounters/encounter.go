@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	assets "github.com/TimTwigg/EncounterManagerBackend/assets"
-	server_utils "github.com/TimTwigg/EncounterManagerBackend/server/utils"
-	encounters "github.com/TimTwigg/EncounterManagerBackend/types/encounters"
-	logger "github.com/TimTwigg/EncounterManagerBackend/utils/log"
+	assets "github.com/TimTwigg/Manwe/assets"
+	server_utils "github.com/TimTwigg/Manwe/server/utils"
+	encounters "github.com/TimTwigg/Manwe/types/encounters"
+	logger "github.com/TimTwigg/Manwe/utils/log"
 )
 
 func EncounterHandler(w http.ResponseWriter, r *http.Request, userid string) {
@@ -101,12 +101,14 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request, userid string) {
 	case http.MethodDelete:
 		logger.DeleteRequest("EncounterHandler: DELETE request")
 		defer r.Body.Close()
+
 		encounterID, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/encounter/"))
 		if err != nil || encounterID <= 0 {
 			logger.Error("EncounterHandler: Encounter ID is required for deletion")
 			http.Error(w, "Encounter ID is required for deletion", http.StatusBadRequest)
 			return
 		}
+
 		logger.DeleteRequest("Deleting Encounter: " + strconv.Itoa((encounterID)))
 
 		err = assets.DeleteEncounter(encounterID, userid)
@@ -115,6 +117,7 @@ func EncounterHandler(w http.ResponseWriter, r *http.Request, userid string) {
 			http.Error(w, "Error deleting encounter", server_utils.ErrorStatus(err))
 			return
 		}
+
 		w.WriteHeader(http.StatusOK)
 
 	default:
