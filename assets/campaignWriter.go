@@ -4,6 +4,7 @@ import (
 	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
 	campaign "github.com/TimTwigg/Manwe/types/campaign"
 	player "github.com/TimTwigg/Manwe/types/player"
+	utils "github.com/TimTwigg/Manwe/utils/functions"
 	logger "github.com/TimTwigg/Manwe/utils/log"
 	errors "github.com/pkg/errors"
 )
@@ -45,19 +46,23 @@ func setCampaignEntities(entities []player.Player, campaignName string, userid s
 
 func SetCampaign(campaignData campaign.Campaign, userid string) (campaign.Campaign, error) {
 	if campaignExists(campaignData.Name, userid) {
-		_, err := asset_utils.ExecSQL(asset_utils.DB, "UPDATE Campaign SET Description = ? WHERE Campaign = ? AND Domain = ?", campaignData.Description, campaignData.Name, userid)
+		logger.PostRequest("SetCampaign: Here 1")
+		_, err := asset_utils.ExecSQL(asset_utils.DB, "UPDATE Campaign SET Description = ? AND LastModified = ? WHERE Campaign = ? AND Domain = ?", campaignData.Description, utils.FormatDate(campaignData.LastModified), campaignData.Name, userid)
 		if err != nil {
 			logger.Error("Error updating Campaign: " + err.Error())
 			return campaign.Campaign{}, err
 		}
 	} else {
-		_, err := asset_utils.ExecSQL(asset_utils.DB, "INSERT INTO Campaign (Campaign, Domain, Description) VALUES (?, ?, ?)", campaignData.Name, userid, campaignData.Description)
+		logger.PostRequest("SetCampaign: Here 2")
+		_, err := asset_utils.ExecSQL(asset_utils.DB, "INSERT INTO Campaign (Campaign, Domain, Description, CreationDate, LastModified) VALUES (?, ?, ?, ?, ?)", campaignData.Name, userid, campaignData.Description, utils.FormatDate(campaignData.CreationDate), utils.FormatDate(campaignData.LastModified))
+		logger.PostRequest("SetCampaign: Here 2B")
 		if err != nil {
 			logger.Error("Error inserting Campaign: " + err.Error())
 			return campaign.Campaign{}, err
 		}
 	}
 
+	logger.PostRequest("SetCampaign: Here 3")
 	err := setCampaignEntities(campaignData.Players, campaignData.Name, userid)
 	if err != nil {
 		logger.Error("Error setting Campaign Entities: " + err.Error())

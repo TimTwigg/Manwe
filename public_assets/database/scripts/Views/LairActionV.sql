@@ -4,9 +4,7 @@ SELECT
     StatBlockID,
     Name,
     Description,
-    coalesce(IsRegional, '') as IsRegional,
-    Domain,
-    Published
+    coalesce(IsRegional, '') as IsRegional
 FROM
     SuperAction
 WHERE

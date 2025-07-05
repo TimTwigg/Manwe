@@ -4,9 +4,7 @@ SELECT
     StatBlockID,
     Type,
     Description,
-    Points,
-    Domain,
-    Published
+    Points
 FROM
     SuperAction
 WHERE

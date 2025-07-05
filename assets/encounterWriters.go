@@ -105,6 +105,24 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 
 func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Encounter, error) {
 	if encounter.ID == 0 || !encounterExists(encounter.ID) {
+		//  If the campaign does not exist, create it
+		if !campaignExists(encounter.Metadata.Campaign, userid) {
+			_, err := asset_utils.ExecSQL(
+				asset_utils.DB,
+				"INSERT INTO Campaign (Campaign, Domain, Description, CreationDate, LastModified) VALUES (?, ?, ?, ?, ?)",
+				encounter.Metadata.Campaign,
+				userid,
+				"Auto-generated campaign for encounter",
+				utils.FormatDate(encounter.Metadata.AccessedDate),
+				utils.FormatDate(encounter.Metadata.AccessedDate),
+			)
+			if err != nil {
+				logger.Error("Error inserting Campaign: " + err.Error())
+				return encounters.Encounter{}, err
+			}
+		}
+
+		//  If the encounter does not exist, create it
 		res, err := asset_utils.ExecSQL(
 			asset_utils.DB,
 			"INSERT INTO Encounter (Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairOwnerID, ActiveID, Domain) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",

@@ -15,9 +15,9 @@ func StatBlockRestrictionClause(restriction EntityTypeRestriction, useAnd bool) 
 		return ""
 	case STATBLOCK:
 		if useAnd {
-			return "AND RecordType = 'StatBlock'"
+			return "AND RecordType = 'Statblock'"
 		} else {
-			return "WHERE RecordType = 'StatBlock'"
+			return "WHERE RecordType = 'Statblock'"
 		}
 	case PLAYER:
 		if useAnd {

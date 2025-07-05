@@ -4,7 +4,9 @@
     - DB allows, but parsing needs to handle this
 - Pagination in api calls
 - How to handle entities in encounter being non-statblocks (ie players or temp npcs)
-- Create campaigns as actual objects so that players can be grouped in a campaign and easily all pulled into a new encounter
+    - Difference type
+    - Should be handled now, test
+- Modifying Campaign table not working
 
 # Database Design
 

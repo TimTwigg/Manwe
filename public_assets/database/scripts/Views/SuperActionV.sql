@@ -5,9 +5,7 @@ SELECT
     Type,
     Name,
     Description,
-    Points,
-    Domain,
-    Published
+    Points
 FROM
     SuperAction
 WHERE

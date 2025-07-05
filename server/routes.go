@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
 	campaignroutes "github.com/TimTwigg/Manwe/server/routes/campaigns"
 	conditionroutes "github.com/TimTwigg/Manwe/server/routes/conditions"
 	encounterroutes "github.com/TimTwigg/Manwe/server/routes/encounters"
@@ -18,9 +19,9 @@ func CORSMiddleware(next http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, r *http.Request) {
 		response.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 		response.Header().Set("Access-Control-Allow-Credentials", "true")
+		response.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		if r.Method == "OPTIONS" {
 			logger.OptionsRequest(r.URL.Path)
-			response.Header().Set("Access-Control-Allow-Methods", "*")
 			response.Header().Set("Access-Control-Allow-Headers",
 				strings.Join(append([]string{"Content-Type"},
 					supertokens.GetAllCORSHeaders()...), ","))
@@ -33,26 +34,31 @@ func CORSMiddleware(next http.HandlerFunc) http.Handler {
 
 func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	userid, _ := server_utils.GetSessionUserID(r)
+	_ = asset_utils.UpsertUser(asset_utils.DB, userid)
 
-	if r.URL.Path == "/metadata" {
+	route := strings.TrimPrefix(r.URL.Path, "/")
+	if strings.Contains(route, "/") && !strings.Contains(route, "all") {
+		route = strings.Split(route, "/")[0]
+	}
+
+	switch route {
+	case "metadata":
 		metadataroutes.MetadataHandler(w, r, userid)
-		// } else if r.URL.Path == "/support" {
-		// 	supportroutes.SupportHandler(w, r, userid)
-	} else if r.URL.Path == "/condition/all" {
+	case "condition/all":
 		conditionroutes.AllConditionsHandler(w, r, userid)
-	} else if r.URL.Path == "/statblock" {
+	case "statblock":
 		statblockroutes.StatBlockHandler(w, r, userid)
-	} else if r.URL.Path == "/statblock/all" {
+	case "statblock/all":
 		statblockroutes.StatBlockOverviewHandler(w, r, userid)
-	} else if r.URL.Path == "/encounter" || r.URL.Path == "/encounter/" {
+	case "encounter":
 		encounterroutes.EncounterHandler(w, r, userid)
-	} else if r.URL.Path == "/encounter/all" {
+	case "encounter/all":
 		encounterroutes.EncounterOverviewHandler(w, r, userid)
-	} else if r.URL.Path == "/campaign" || r.URL.Path == "/campaign/" {
+	case "campaign":
 		campaignroutes.CampaignHandler(w, r, userid)
-	} else if r.URL.Path == "/campaign/all" {
+	case "campaign/all":
 		campaignroutes.CampaignOverviewHandler(w, r, userid)
-	} else {
+	default:
 		logger.Error("Unhandled route: " + r.URL.Path)
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
