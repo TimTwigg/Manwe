@@ -4,35 +4,36 @@ import (
 	"database/sql"
 
 	io "github.com/TimTwigg/Manwe/utils/io"
-	_ "modernc.org/sqlite"
+	logger "github.com/TimTwigg/Manwe/utils/log"
+	_ "github.com/lib/pq"
 )
 
 var DB *sql.DB
 
-// Retrieve the database file path from the environment variables
-func GetDBFile() (string, error) {
+// Retrieve the database URL from the environment variables
+func GetDBURL() (string, error) {
 	env, err := io.GetEnv()
 	if err != nil {
 		return "", err
 	}
-	dbfile := env["DBFILE"]
-	if dbfile == "" {
+	dburl := env["DATABASE_URL"]
+	if dburl == "" {
 		return "", nil
 	}
-	return dbfile, nil
+	return dburl, nil
 }
 
 // Open a connection to the database
 func GetDB() (*sql.DB, error) {
-	dbfile, err := GetDBFile()
+	dburl, err := GetDBURL()
 	if err != nil {
 		return nil, err
 	}
-	if dbfile == "" {
+	if dburl == "" {
 		return nil, nil
 	}
 
-	db, err := sql.Open("sqlite", "file:"+dbfile+"?cache=shared")
+	db, err := sql.Open("postgres", dburl)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +65,9 @@ func QuerySQL(db *sql.DB, query string, args ...any) (*sql.Rows, error) {
 
 // Execute a SQL command and return the result
 func ExecSQL(db *sql.DB, query string, args ...any) (sql.Result, error) {
+	logger.Info("Executing SQL: ", query, args)
 	result, err := db.Exec(query, args...)
+	logger.Info("SQL Execution Result: ", result)
 	if err != nil {
 		return nil, err
 	}
