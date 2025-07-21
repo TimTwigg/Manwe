@@ -1,6 +1,8 @@
 package assets
 
 import (
+	"context"
+
 	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
 	encounters "github.com/TimTwigg/Manwe/types/encounters"
 	entities "github.com/TimTwigg/Manwe/types/entities"
@@ -11,7 +13,7 @@ import (
 
 func encounterBelongsToUser(encounterID int, userid string) (bool, error) {
 	// Check that the encounter belongs to the user
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Domain FROM Encounter WHERE EncounterID = ?", encounterID)
+	rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT username FROM public.encounter WHERE encounterid = $1", encounterID)
 	if err != nil {
 		logger.Error("Error checking EncounterID: " + err.Error())
 		return false, err
@@ -31,7 +33,7 @@ func encounterBelongsToUser(encounterID int, userid string) (bool, error) {
 }
 
 func encounterExists(encounterID int) bool {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT COUNT(*) FROM Encounter WHERE EncounterID = ?", encounterID)
+	rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT COUNT(*) FROM public.encounter WHERE encounterid = $1", encounterID)
 	if err != nil {
 		logger.Error("Error checking EncounterID: " + err.Error())
 		return false
@@ -48,22 +50,17 @@ func encounterExists(encounterID int) bool {
 
 func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 	// Empty the EncounterEntities table for this encounter
-	_, err := asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM EncounterEntities WHERE EncounterID = ?", encounterID)
+	_, err := asset_utils.DBPool.Exec(context.Background(), "DELETE FROM public.encounterentities WHERE encounterid = $1", encounterID)
 	if err != nil {
 		logger.Error("Error deleting EncounterEntities: " + err.Error())
-		return err
-	}
-	_, err = asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM EncEntConditions WHERE EncounterID = ?", encounterID)
-	if err != nil {
-		logger.Error("Error deleting EncEntConditions: " + err.Error())
 		return err
 	}
 
 	// Insert each creature into the EncounterEntities table
 	for row, creature := range creatures {
-		_, err := asset_utils.ExecSQL(
-			asset_utils.DB,
-			"INSERT INTO EncounterEntities (EncounterID, RowID, StatBlockID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Concentration, Notes, IsHostile, EncounterLocked, ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		_, err := asset_utils.DBPool.Exec(
+			context.Background(),
+			"INSERT INTO public.encounterentities (encounterid, rowid, statblockid, suffix, initiative, maxhitpoints, temphitpoints, currenthitpoints, armorclassbonus, concentration, notes, ishostile, encounterlocked, id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
 			encounterID,
 			row+1,
 			creature.DBID,
@@ -73,10 +70,10 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 			creature.TempHitPoints,
 			creature.CurrentHitPoints,
 			creature.ArmorClassBonus,
-			utils.FormatBool(creature.Concentration),
+			creature.Concentration,
 			creature.Notes,
-			utils.FormatBool(creature.IsHostile),
-			utils.FormatBool(creature.EncounterLocked),
+			creature.IsHostile,
+			creature.EncounterLocked,
 			creature.ID,
 		)
 		if err != nil {
@@ -86,9 +83,9 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 
 		// Insert Conditions
 		for condition, rounds := range creature.Conditions {
-			_, err := asset_utils.ExecSQL(
-				asset_utils.DB,
-				"INSERT INTO EncEntConditions (EncounterID, RowID, Condition, Duration) VALUES (?, ?, ?, ?)",
+			_, err := asset_utils.DBPool.Exec(
+				context.Background(),
+				"INSERT INTO public.encentconditions (encounterid, rowid, condition, duration) VALUES ($1, $2, $3, $4)",
 				encounterID,
 				row+1,
 				condition,
@@ -107,9 +104,9 @@ func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Enc
 	if encounter.ID == 0 || !encounterExists(encounter.ID) {
 		//  If the campaign does not exist, create it
 		if !campaignExists(encounter.Metadata.Campaign, userid) {
-			_, err := asset_utils.ExecSQL(
-				asset_utils.DB,
-				"INSERT INTO Campaign (Campaign, Domain, Description, CreationDate, LastModified) VALUES (?, ?, ?, ?, ?)",
+			_, err := asset_utils.DBPool.Exec(
+				context.Background(),
+				"INSERT INTO public.campaign (campaign, username, description, creationdate, lastmodified) VALUES ($1, $2, $3, $4, $5)",
 				encounter.Metadata.Campaign,
 				userid,
 				"Auto-generated campaign for encounter",
@@ -123,32 +120,26 @@ func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Enc
 		}
 
 		//  If the encounter does not exist, create it
-		res, err := asset_utils.ExecSQL(
-			asset_utils.DB,
-			"INSERT INTO Encounter (Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairOwnerID, ActiveID, Domain) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		err := asset_utils.DBPool.QueryRow(
+			context.Background(),
+			"INSERT INTO public.encounter (name, description, creationdate, accesseddate, campaign, started, round, turn, haslair, lairownerid, activeid, username) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING encounterid",
 			encounter.Name,
 			encounter.Description,
 			utils.FormatDate(encounter.Metadata.CreationDate),
 			utils.FormatDate(encounter.Metadata.AccessedDate),
 			encounter.Metadata.Campaign,
-			utils.FormatBool(encounter.Metadata.Started),
+			encounter.Metadata.Started,
 			encounter.Metadata.Round,
 			encounter.Metadata.Turn,
-			utils.FormatBool(encounter.HasLair),
+			encounter.HasLair,
 			encounter.LairOwnerID,
 			encounter.ActiveID,
 			userid,
-		)
+		).Scan(&encounter.ID)
 		if err != nil {
 			logger.Error("Error inserting Encounter: " + err.Error())
 			return encounters.Encounter{}, err
 		}
-		id, err := res.LastInsertId()
-		if err != nil {
-			logger.Error("Error getting last insert ID: " + err.Error())
-			return encounters.Encounter{}, err
-		}
-		encounter.ID = int(id)
 	} else {
 		//  Check if the encounter belongs to the user
 		auth, err := encounterBelongsToUser(encounter.ID, userid)
@@ -162,18 +153,18 @@ func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Enc
 		}
 
 		//  Update the encounter
-		_, err = asset_utils.ExecSQL(
-			asset_utils.DB,
-			"UPDATE Encounter SET Name = ?, Description = ?, CreationDate = ?, AccessedDate = ?, Campaign = ?, Started = ?, Round = ?, Turn = ?, HasLair = ?, LairOwnerID = ?, ActiveID = ? WHERE EncounterID = ?",
+		_, err = asset_utils.DBPool.Exec(
+			context.Background(),
+			"UPDATE public.encounter SET name = $1, description = $2, creationdate = $3, accesseddate = $4, campaign = $5, started = $6, round = $7, turn = $8, haslair = $9, lairownerid = $10, activeid = $11 WHERE encounterid = $12",
 			encounter.Name,
 			encounter.Description,
 			utils.FormatDate(encounter.Metadata.CreationDate),
 			utils.FormatDate(encounter.Metadata.AccessedDate),
 			encounter.Metadata.Campaign,
-			utils.FormatBool(encounter.Metadata.Started),
+			encounter.Metadata.Started,
 			encounter.Metadata.Round,
 			encounter.Metadata.Turn,
-			utils.FormatBool(encounter.HasLair),
+			encounter.HasLair,
 			encounter.LairOwnerID,
 			encounter.ActiveID,
 			encounter.ID,
@@ -203,19 +194,7 @@ func DeleteEncounter(encounterID int, userid string) error {
 		return error_utils.AuthError{Message: "Encounter does not belong to user"}
 	}
 
-	_, err = asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM EncEntConditions WHERE EncounterID = ?", encounterID)
-	if err != nil {
-		logger.Error("Error deleting EncEntConditions: " + err.Error())
-		return err
-	}
-
-	_, err = asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM EncounterEntities WHERE EncounterID = ?", encounterID)
-	if err != nil {
-		logger.Error("Error deleting EncounterEntities: " + err.Error())
-		return err
-	}
-
-	_, err = asset_utils.ExecSQL(asset_utils.DB, "DELETE FROM Encounter WHERE EncounterID = ?", encounterID)
+	_, err = asset_utils.DBPool.Exec(context.Background(), "DELETE FROM public.encounter WHERE encounterid = $1", encounterID)
 	if err != nil {
 		logger.Error("Error deleting Encounter: " + err.Error())
 		return err

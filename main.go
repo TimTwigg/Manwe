@@ -16,6 +16,7 @@ import (
 	emailpassword "github.com/supertokens/supertokens-golang/recipe/emailpassword"
 	epmodels "github.com/supertokens/supertokens-golang/recipe/emailpassword/epmodels"
 	session "github.com/supertokens/supertokens-golang/recipe/session"
+	sessmodels "github.com/supertokens/supertokens-golang/recipe/session/sessmodels"
 	thirdparty "github.com/supertokens/supertokens-golang/recipe/thirdparty"
 	tpmodels "github.com/supertokens/supertokens-golang/recipe/thirdparty/tpmodels"
 	usermetadata "github.com/supertokens/supertokens-golang/recipe/usermetadata"
@@ -23,7 +24,7 @@ import (
 )
 
 func cleanup() {
-	asset_utils.CloseDB(asset_utils.DB)
+	asset_utils.DBPool.Close()
 	logger.Init("Database closed.")
 	logger.Init("Server stopped.")
 }
@@ -51,12 +52,12 @@ func main() {
 	}
 
 	logger.Init("Loading database...")
-	database, err := asset_utils.GetDB()
+	pool, err := asset_utils.GetDB()
 	if err != nil {
 		logger.Error("Error loading database: " + err.Error())
 		return
 	}
-	asset_utils.DB = database
+	asset_utils.DBPool = pool
 
 	logger.Init("Initializing Authentication...")
 	apiBasePath := "/auth"
@@ -86,7 +87,7 @@ func main() {
 							}
 							if response.OK != nil {
 								user := response.OK.User
-								_ = asset_utils.UpsertUser(asset_utils.DB, user.ID)
+								_ = asset_utils.UpsertUser(user.ID)
 							}
 							return response, nil
 						}
@@ -121,7 +122,7 @@ func main() {
 							}
 							if response.OK != nil {
 								user := response.OK.User
-								_ = asset_utils.UpsertUser(asset_utils.DB, user.ID)
+								_ = asset_utils.UpsertUser(user.ID)
 							}
 							return response, nil
 						}
@@ -135,7 +136,19 @@ func main() {
 				},
 			}),
 			usermetadata.Init(nil),
-			session.Init(nil),
+			session.Init(&sessmodels.TypeInput{
+				Override: &sessmodels.OverrideStruct{
+					Functions: func(originalImplementation sessmodels.RecipeInterface) sessmodels.RecipeInterface {
+						originalCreateNewSession := *originalImplementation.CreateNewSession
+						(*originalImplementation.CreateNewSession) = func(userID string, accessTokenPayload, sessionDataInDatabase map[string]interface{}, disableAntiCsrf *bool, tenantId string, userContext supertokens.UserContext) (sessmodels.SessionContainer, error) {
+							_ = asset_utils.UpsertUser(userID)
+							return originalCreateNewSession(userID, accessTokenPayload, sessionDataInDatabase, disableAntiCsrf, tenantId, userContext)
+						}
+
+						return originalImplementation
+					},
+				},
+			}),
 		},
 	})
 	if err != nil {
@@ -153,7 +166,7 @@ func main() {
 	logger.Init("Server started on port 8080")
 
 	if err := http.ListenAndServe("localhost:8080", routes.CORSMiddleware(session.VerifySession(nil, http.HandlerFunc(routes.HandleRoute)))); err != nil {
-		asset_utils.CloseDB(asset_utils.DB)
+		asset_utils.DBPool.Close()
 		log.Fatal(err)
 	}
 }

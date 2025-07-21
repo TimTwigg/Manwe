@@ -5,7 +5,7 @@ type StatBlockOverview struct {
 	Name            string
 	Type            string
 	Size            string
-	ChallengeRating int
+	ChallengeRating float32
 	Source          string
 }
 

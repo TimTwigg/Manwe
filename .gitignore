@@ -36,5 +36,8 @@ dump*.txt
 # Database
 *.xlsx
 
+# Log files
+logs/
+
 .env
 .neon

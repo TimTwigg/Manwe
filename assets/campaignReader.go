@@ -1,16 +1,17 @@
 package assets
 
 import (
+	"context"
+
 	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
 	campaign "github.com/TimTwigg/Manwe/types/campaign"
 	player "github.com/TimTwigg/Manwe/types/player"
-	utils "github.com/TimTwigg/Manwe/utils/functions"
 	logger "github.com/TimTwigg/Manwe/utils/log"
 	errors "github.com/pkg/errors"
 )
 
 func ReadCampaign(campaignName string, userid string) (campaign.Campaign, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Campaign, Description FROM Campaign WHERE Campaign = ? AND Domain = ?", campaignName, userid)
+	rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT campaign, description FROM public.campaigns WHERE campaign = $1 AND username = $2", campaignName, userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return campaign.Campaign{}, err
@@ -30,7 +31,7 @@ func ReadCampaign(campaignName string, userid string) (campaign.Campaign, error)
 		return campaign.Campaign{}, errors.New("No Campaign found with name: " + campaignName)
 	}
 
-	entity_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT StatBlockID, Notes FROM CampaignEntities WHERE Campaign = ? AND Domain = ?", campaignName, userid)
+	entity_rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT statblockid, notes FROM public.campaignentities WHERE campaign = $1 AND username = $2", campaignName, userid)
 	if err != nil {
 		logger.Error("Error querying CampaignEntities: " + err.Error())
 		return campaign.Campaign{}, err
@@ -59,7 +60,7 @@ func ReadCampaign(campaignName string, userid string) (campaign.Campaign, error)
 }
 
 func ReadAllCampaignOverviews(userid string) ([]campaign.CampaignOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Campaign, Description, CreationDate, LastModified FROM Campaign WHERE Domain = ?", userid)
+	rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT campaign, description, creationDate, lastModified FROM public.campaigns WHERE username = $1", userid)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return nil, err
@@ -70,13 +71,10 @@ func ReadAllCampaignOverviews(userid string) ([]campaign.CampaignOverview, error
 
 	for rows.Next() {
 		var camp campaign.CampaignOverview
-		var creationDate, lastModified string
-		if err = rows.Scan(&camp.Name, &camp.Description, &creationDate, &lastModified); err != nil {
+		if err = rows.Scan(&camp.Name, &camp.Description, &camp.CreationDate, &camp.LastModified); err != nil {
 			logger.Error("Error scanning row: " + err.Error())
 			return nil, err
 		}
-		camp.CreationDate = utils.ParseStringDate(creationDate)
-		camp.LastModified = utils.ParseStringDate(lastModified)
 		campaigns = append(campaigns, camp)
 	}
 

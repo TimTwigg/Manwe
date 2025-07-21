@@ -15,27 +15,27 @@ func StatBlockRestrictionClause(restriction EntityTypeRestriction, useAnd bool) 
 		return ""
 	case STATBLOCK:
 		if useAnd {
-			return "AND RecordType = 'Statblock'"
+			return " AND recordtype = 'Statblock'"
 		} else {
-			return "WHERE RecordType = 'Statblock'"
+			return " WHERE recordtype = 'Statblock'"
 		}
 	case PLAYER:
 		if useAnd {
-			return "AND RecordType = 'Player'"
+			return " AND recordtype = 'Player'"
 		} else {
-			return "WHERE RecordType = 'Player'"
+			return " WHERE recordtype = 'Player'"
 		}
 	case CUSTOM:
 		if useAnd {
-			return "AND RecordType = 'Custom'"
+			return " AND recordtype = 'Custom'"
 		} else {
-			return "WHERE RecordType = 'Custom'"
+			return " WHERE recordtype = 'Custom'"
 		}
 	default:
 		if useAnd {
-			return "AND RecordType = 'ERROR'"
+			return " AND recordtype = 'ERROR'"
 		} else {
-			return "WHERE RecordType = 'ERROR'"
+			return " WHERE recordtype = 'ERROR'"
 		}
 	}
 }

@@ -47,16 +47,13 @@ func CampaignHandler(w http.ResponseWriter, r *http.Request, userid string) {
 			http.Error(w, "Error decoding JSON", http.StatusBadRequest)
 			return
 		}
-		logger.PostRequest("CampaignHandler: Here 1")
 		if camp.Name == "" {
 			logger.Error("CampaignHandler: Campaign name is required")
 			http.Error(w, "Campaign name is required", http.StatusBadRequest)
 			return
 		}
 
-		logger.PostRequest("CampaignHandler: Here 2")
 		camp, err := assets.SetCampaign(camp, userid)
-		logger.PostRequest("CampaignHandler: Here 3")
 		if err != nil {
 			logger.Error("CampaignHandler: Error setting campaign: " + err.Error())
 			http.Error(w, "Error setting campaign", server_utils.ErrorStatus(err))

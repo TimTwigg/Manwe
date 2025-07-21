@@ -1,14 +1,13 @@
 package asset_utils
 
 import (
-	"database/sql"
+	"context"
 
 	io "github.com/TimTwigg/Manwe/utils/io"
-	logger "github.com/TimTwigg/Manwe/utils/log"
-	_ "github.com/lib/pq"
+	pgxpool "github.com/jackc/pgx/v5/pgxpool"
 )
 
-var DB *sql.DB
+var DBPool *pgxpool.Pool
 
 // Retrieve the database URL from the environment variables
 func GetDBURL() (string, error) {
@@ -24,7 +23,7 @@ func GetDBURL() (string, error) {
 }
 
 // Open a connection to the database
-func GetDB() (*sql.DB, error) {
+func GetDB() (*pgxpool.Pool, error) {
 	dburl, err := GetDBURL()
 	if err != nil {
 		return nil, err
@@ -33,50 +32,21 @@ func GetDB() (*sql.DB, error) {
 		return nil, nil
 	}
 
-	db, err := sql.Open("postgres", dburl)
+	pool, err := pgxpool.New(context.Background(), dburl)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = db.Ping(); err != nil {
+	if err = pool.Ping(context.Background()); err != nil {
 		return nil, err
 	}
 
-	return db, nil
-}
-
-// Close the database connection
-func CloseDB(db *sql.DB) error {
-	err := db.Close()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// Execute a SQL Query and return the result
-func QuerySQL(db *sql.DB, query string, args ...any) (*sql.Rows, error) {
-	rows, err := db.Query(query, args...)
-	if err != nil {
-		return nil, err
-	}
-	return rows, nil
-}
-
-// Execute a SQL command and return the result
-func ExecSQL(db *sql.DB, query string, args ...any) (sql.Result, error) {
-	logger.Info("Executing SQL: ", query, args)
-	result, err := db.Exec(query, args...)
-	logger.Info("SQL Execution Result: ", result)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
+	return pool, nil
 }
 
 // Insert or update a user in the User table
-func UpsertUser(db *sql.DB, userID string) error {
-	_, err := ExecSQL(db, "INSERT OR IGNORE INTO User (UserName) VALUES (?)", userID)
+func UpsertUser(userID string) error {
+	_, err := DBPool.Exec(context.Background(), "INSERT INTO public.user (username) VALUES ($1) ON CONFLICT (username) DO NOTHING", userID)
 	if err != nil {
 		return err
 	}

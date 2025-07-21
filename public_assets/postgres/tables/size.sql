@@ -1,5 +1,5 @@
-CREATE TABLE "public"."condition" (
-  "condition" text PRIMARY KEY,
+CREATE TABLE "public"."size" (
+  "size" varchar(20) PRIMARY KEY,
   "user" text NOT NULL DEFAULT 'public',
   "published" boolean NOT NULL DEFAULT 'false',
   CONSTRAINT "constraint_1" FOREIGN KEY ("user") REFERENCES "public"."user" ("username") ON UPDATE CASCADE ON DELETE CASCADE

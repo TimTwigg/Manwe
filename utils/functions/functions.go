@@ -23,14 +23,6 @@ func GetOptional[T any](dict map[string]any, key string, default_value T) T {
 	return default_value
 }
 
-func ParseStringDate(date string) time.Time {
-	parsedDate, err := time.Parse("20060102", date)
-	if err != nil {
-		panic(err)
-	}
-	return parsedDate
-}
-
 func FormatBool(value bool) string {
 	if value {
 		return "X"
@@ -39,5 +31,5 @@ func FormatBool(value bool) string {
 }
 
 func FormatDate(date time.Time) string {
-	return date.Format("20060102")
+	return date.Format("2006-01-02")
 }

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
 	campaignroutes "github.com/TimTwigg/Manwe/server/routes/campaigns"
 	conditionroutes "github.com/TimTwigg/Manwe/server/routes/conditions"
 	encounterroutes "github.com/TimTwigg/Manwe/server/routes/encounters"
@@ -34,7 +33,12 @@ func CORSMiddleware(next http.HandlerFunc) http.Handler {
 
 func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	userid, _ := server_utils.GetSessionUserID(r)
-	_ = asset_utils.UpsertUser(asset_utils.DB, userid)
+	if userid == "" {
+		userid = "public"
+	}
+	// } else if r.Method != http.MethodOptions {
+	// 	_ = asset_utils.UpsertUser(asset_utils.DB, userid)
+	// }
 
 	route := strings.TrimPrefix(r.URL.Path, "/")
 	if strings.Contains(route, "/") && !strings.Contains(route, "all") {

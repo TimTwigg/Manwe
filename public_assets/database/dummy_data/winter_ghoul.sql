@@ -44,7 +44,7 @@ VALUES
     );
 
 INSERT
-OR IGNORE INTO "EntityStats" ("StatBlockID", "Ability", "Value")
+OR IGNORE INTO "StatBlockStats" ("StatBlockID", "Ability", "Value")
 VALUES
     (1, 'Strength', 13),
     (1, 'Dexterity', 15),

@@ -2,7 +2,7 @@ from urllib import request
 import json
 
 print("[TEST] /statblock")
-res = request.urlopen("http://localhost:8080/statblock?name=winter+ghoul&detail_level=2")
+res = request.urlopen("http://localhost:8080/statblock?name=Winter+Ghoul&detail_level=2")
 assert res.status == 200, f"Error /statblock: {res.status}"
 data = json.loads(res.read().decode("utf-8"))
 assert data["Name"] == "Winter Ghoul", f"Error /statblock: {data['Name']}"

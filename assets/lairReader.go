@@ -1,6 +1,7 @@
 package assets
 
 import (
+	"context"
 	"strconv"
 
 	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
@@ -11,7 +12,7 @@ import (
 )
 
 func ReadLairByEntityID(id int) (stat_blocks.Lair, error) {
-	lair_row, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, Initiative FROM Lair WHERE StatBlockID = ?", id)
+	lair_row, err := asset_utils.DBPool.Query(context.Background(), "SELECT name, description, initiative FROM public.lair WHERE statblockid = $1", id)
 	if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return stat_blocks.Lair{}, error_utils.ParseError{Message: err.Error()}
@@ -32,7 +33,7 @@ func ReadLairByEntityID(id int) (stat_blocks.Lair, error) {
 		block := stat_blocks.Lair{Name: Name, OwningEntityDBID: id, Description: Description, Initiative: Initiative, Actions: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}, RegionalEffects: generics.ItemList{Description: "", Items: make([]generics.SimpleItem, 0)}}
 
 		// Read Lair Actions
-		lair_actions_row, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, IsRegional FROM LairActionV WHERE StatBlockID = ?", id)
+		lair_actions_row, err := asset_utils.DBPool.Query(context.Background(), "SELECT name, description, isregional FROM public.lairactionv WHERE statblockid = $1", id)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
 			return stat_blocks.Lair{}, error_utils.ParseError{Message: err.Error()}
@@ -42,7 +43,7 @@ func ReadLairByEntityID(id int) (stat_blocks.Lair, error) {
 		for lair_actions_row.Next() {
 			var Name string
 			var Description string
-			var IsRegional string
+			var IsRegional bool
 			if err := lair_actions_row.Scan(
 				&Name,
 				&Description,
@@ -53,13 +54,13 @@ func ReadLairByEntityID(id int) (stat_blocks.Lair, error) {
 			}
 			// Add to StatBlock
 			if Name == "X" {
-				if IsRegional == "X" {
+				if IsRegional {
 					block.RegionalEffects.Description = Description
 				} else {
 					block.Actions.Description = Description
 				}
 			} else {
-				if IsRegional == "X" {
+				if IsRegional {
 					block.RegionalEffects.Items = append(block.RegionalEffects.Items, generics.SimpleItem{Name: Name, Description: Description})
 				} else {
 					block.Actions.Items = append(block.Actions.Items, generics.SimpleItem{Name: Name, Description: Description})

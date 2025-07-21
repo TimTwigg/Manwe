@@ -1,6 +1,7 @@
 package assets
 
 import (
+	"context"
 	"strconv"
 	"strings"
 
@@ -9,131 +10,87 @@ import (
 	entities "github.com/TimTwigg/Manwe/types/entities"
 	generics "github.com/TimTwigg/Manwe/types/generics"
 	error_utils "github.com/TimTwigg/Manwe/utils/errors"
-	utils "github.com/TimTwigg/Manwe/utils/functions"
 	logger "github.com/TimTwigg/Manwe/utils/log"
+	pgx "github.com/jackc/pgx/v5"
 	errors "github.com/pkg/errors"
 )
 
 func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn, HasLair, LairOwnerID, ActiveID FROM Encounter WHERE EncounterID = ? AND (Domain = 'Public' OR Domain = ?)", id, userid)
-	if err != nil {
-		logger.Error("Error querying database: " + err.Error())
-		return encounters.Encounter{}, err
-	}
-	defer rows.Close()
-
 	var encounter encounters.Encounter
-
 	encounter.Entities = make([]entities.Entity, 0)
 	encounter.Lair.Actions.Items = make([]generics.SimpleItem, 0)
 	encounter.Lair.RegionalEffects.Items = make([]generics.SimpleItem, 0)
-
-	if rows.Next() {
-		var CreationDate, AccessedDate, Started, HasLair string
-		if err := rows.Scan(
-			&encounter.ID,
-			&encounter.Name,
-			&encounter.Description,
-			&CreationDate,
-			&AccessedDate,
-			&encounter.Metadata.Campaign,
-			&Started,
-			&encounter.Metadata.Round,
-			&encounter.Metadata.Turn,
-			&HasLair,
-			&encounter.LairOwnerID,
-			&encounter.ActiveID,
-		); err != nil {
-			logger.Error("Error Scanning Encounter Row: " + err.Error())
-			return encounters.Encounter{}, err
-		}
-		encounter.Metadata.CreationDate = utils.ParseStringDate(CreationDate)
-		encounter.Metadata.AccessedDate = utils.ParseStringDate(AccessedDate)
-		encounter.Metadata.Started = Started == "X"
-		encounter.HasLair = HasLair == "X"
-	} else {
+	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT encounterid, name, description, creationdate, accesseddate, campaign, started, round, turn, haslair, lairownerid, activeid FROM public.encounter WHERE encounterid = $1 AND (username = 'public' OR username = $2)", id, userid).Scan(
+		&encounter.ID,
+		&encounter.Name,
+		&encounter.Description,
+		&encounter.Metadata.CreationDate,
+		&encounter.Metadata.AccessedDate,
+		&encounter.Metadata.Campaign,
+		&encounter.Metadata.Started,
+		&encounter.Metadata.Round,
+		&encounter.Metadata.Turn,
+		&encounter.HasLair,
+		&encounter.LairOwnerID,
+		&encounter.ActiveID,
+	)
+	if pgx.ErrNoRows == err {
 		logger.Error("No Encounter found with id: " + strconv.Itoa(id))
 		return encounters.Encounter{}, errors.New("No Encounter found with id: " + strconv.Itoa(id))
-	}
-
-	entity_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT RowID, StatBlockID, Suffix, Initiative, MaxHitPoints, TempHitPoints, CurrentHitPoints, ArmorClassBonus, Concentration, Notes, IsHostile, EncounterLocked, ID FROM EncounterEntities WHERE EncounterID = ?", id)
-	if err != nil {
+	} else if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.Encounter{}, err
 	}
-	defer entity_rows.Close()
-	for entity_rows.Next() {
-		var rowID, entityID, initiative, maxHitPoints, tempHitPoints, currentHitPoints, armorClassBonus int
-		var suffix, notes, isHostile, encounterLocked, concentration, ID string
 
-		if err := entity_rows.Scan(
-			&rowID,
-			&entityID,
-			&suffix,
-			&initiative,
-			&maxHitPoints,
-			&tempHitPoints,
-			&currentHitPoints,
-			&armorClassBonus,
-			&concentration,
-			&notes,
-			&isHostile,
-			&encounterLocked,
-			&ID,
+	entity_rows, _ := asset_utils.DBPool.Query(context.Background(), "SELECT rowid, statblockid, suffix, initiative, maxhitpoints, temphitpoints, currenthitpoints, armorclassbonus, concentration, notes, ishostile, encounterlocked, id FROM public.encounterentities WHERE encounterid = $1", id)
+	entities, err := pgx.CollectRows(entity_rows, func(row pgx.CollectableRow) (entities.Entity, error) {
+		var entity entities.Entity
+		if err := row.Scan(
+			&entity.DBID,
+			&entity.ID,
+			&entity.Suffix,
+			&entity.Initiative,
+			&entity.MaxHitPoints,
+			&entity.TempHitPoints,
+			&entity.CurrentHitPoints,
+			&entity.ArmorClassBonus,
+			&entity.Concentration,
+			&entity.Notes,
+			&entity.IsHostile,
+			&entity.EncounterLocked,
+			&entity.ID,
 		); err != nil {
 			logger.Error("Error Scanning Encounter Entity Row: " + err.Error())
-			return encounters.Encounter{}, err
+			return entities.Entity{}, err
 		}
-
-		statblock, err := ReadStatBlockByID(entityID, userid, asset_utils.ANY)
+		statblock, err := ReadStatBlockByID(entity.DBID, userid, asset_utils.ANY)
 		if err != nil {
 			logger.Error("Error reading statblock: " + err.Error())
-			return encounters.Encounter{}, err
+			return entities.Entity{}, err
 		}
+		entity.Displayable = statblock
 
-		entity := entities.Entity{
-			DBID:             entityID,
-			ID:               ID,
-			Name:             statblock.Name,
-			Suffix:           suffix,
-			Initiative:       initiative,
-			MaxHitPoints:     maxHitPoints,
-			TempHitPoints:    tempHitPoints,
-			CurrentHitPoints: currentHitPoints,
-			ArmorClass:       statblock.Stats.ArmorClass,
-			ArmorClassBonus:  armorClassBonus,
-			Speed:            statblock.Stats.Speed,
-			Conditions:       make(map[string]int, 0),
-			SpellSaveDC:      statblock.Details.SpellSaveDC,
-			SpellSlots:       make(map[int]entities.SpellSlotLevel, 0),
-			Concentration:    concentration == "X",
-			Notes:            notes,
-			IsHostile:        isHostile == "X",
-			EncounterLocked:  encounterLocked == "X",
-			Displayable:      statblock,
-			EntityType:       entities.StatBlock,
-			SavingThrows:     statblock.Details.SavingThrows,
-			ChallengeRating:  statblock.ChallengeRating,
-		}
-
-		conditions_rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Condition, Duration FROM EncEntConditions WHERE EncounterID = ? and RowID = ?", id, rowID)
+		conditions_rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT condition, duration FROM public.encentconditions WHERE encounterid = $1 and rowid = $2", id, entity.DBID)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
-			return encounters.Encounter{}, err
+			return entities.Entity{}, err
 		}
-		defer conditions_rows.Close()
-		for conditions_rows.Next() {
-			var condition string
-			var duration int
-			if err := conditions_rows.Scan(&condition, &duration); err != nil {
-				logger.Error("Error Scanning Encounter Entity Condition Row: " + err.Error())
-				return encounters.Encounter{}, err
-			}
+		entity.Conditions = make(map[string]int, 0)
+		var condition string
+		var duration int
+		pgx.ForEachRow(conditions_rows, []any{&condition, &duration}, func() error {
 			entity.Conditions[condition] = duration
-		}
+			return nil
+		})
 
-		encounter.Entities = append(encounter.Entities, entity)
+		return entity, nil
+	})
+	err = entity_rows.Err()
+	if err != nil && err != pgx.ErrNoRows {
+		logger.Error("Error querying database: " + err.Error())
+		return encounters.Encounter{}, err
 	}
+	encounter.Entities = entities
 
 	if encounter.HasLair && encounter.LairOwnerID > 0 {
 		if encounter.Lair, err = ReadLairByEntityID(encounter.LairOwnerID); err != nil {
@@ -148,129 +105,80 @@ func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
 }
 
 func ReadEncounterByName(name string, userid string) (encounters.Encounter, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID FROM Encounter WHERE name = ? AND (Domain = 'Public' OR Domain = ?)", name, userid)
-	if err != nil {
-		logger.Error("Error querying database: " + err.Error())
-		return encounters.Encounter{}, err
-	}
-	defer rows.Close()
-
 	var id int
-	if rows.Next() {
-		if err := rows.Scan(&id); err != nil {
-			logger.Error("Error Scanning Encounter Row: " + err.Error())
-			return encounters.Encounter{}, err
-		}
-	} else {
+	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT encounterid FROM public.encounter WHERE name = $1 AND (username = 'public' OR username = $2)", name, userid).Scan(&id)
+	if pgx.ErrNoRows == err {
 		logger.Error("No Encounter found with name: " + name)
 		return encounters.Encounter{}, errors.New("No Encounter found with name: " + name)
+	} else if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return encounters.Encounter{}, err
 	}
 
 	return ReadEncounterByID(id, userid)
 }
 
 func ReadEncounterOverviewByID(id int, userid string) (encounters.EncounterOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter WHERE EncounterID = ? AND (Domain = 'Public' OR Domain = ?)", id, userid)
-	if err != nil {
+	var encounter encounters.EncounterOverview
+	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT name, description, creationdate, accesseddate, campaign, started, round, turn FROM public.encounter WHERE encounterid = $1 AND (username = 'public' OR username = $2)", id, userid).Scan(
+		&encounter.Name,
+		&encounter.Description,
+		&encounter.Metadata.CreationDate,
+		&encounter.Metadata.AccessedDate,
+		&encounter.Metadata.Campaign,
+		&encounter.Metadata.Started,
+		&encounter.Metadata.Round,
+		&encounter.Metadata.Turn,
+	)
+	if pgx.ErrNoRows == err {
+		logger.Error("No Encounter found with id: " + strconv.Itoa(id))
+		return encounters.EncounterOverview{}, errors.New("No Encounter found with id: " + strconv.Itoa(id))
+	} else if err != nil {
 		logger.Error("Error querying database: " + err.Error())
 		return encounters.EncounterOverview{}, err
 	}
-	defer rows.Close()
+	return encounter, nil
+}
 
-	var encounter encounters.EncounterOverview
+func ReadEncounterOverviewByName(name string, userid string) (encounters.EncounterOverview, error) {
+	var id int
+	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT encounterid FROM public.encounter WHERE name = $1 AND (username = 'public' OR username = $2)", name, userid).Scan(&id)
+	if pgx.ErrNoRows == err {
+		logger.Error("No Encounter found with name: " + name)
+		return encounters.EncounterOverview{}, errors.New("No Encounter found with name: " + name)
+	} else if err != nil {
+		logger.Error("Error querying database: " + err.Error())
+		return encounters.EncounterOverview{}, err
+	}
+	return ReadEncounterOverviewByID(id, userid)
+}
 
-	if rows.Next() {
-		var CreationDate, AccessedDate, Started string
-		if err := rows.Scan(
+func ReadAllEncounterOverviews(userid string) ([]encounters.EncounterOverview, error) {
+	_rows, _ := asset_utils.DBPool.Query(context.Background(), "SELECT encounterid, name, description, creationdate, accesseddate, campaign, started, round, turn FROM public.encounter WHERE (username = 'public' OR username = $1)", userid)
+	rows, err := pgx.CollectRows(_rows, func(row pgx.CollectableRow) (encounters.EncounterOverview, error) {
+		var encounter encounters.EncounterOverview
+		if err := row.Scan(
+			&encounter.ID,
 			&encounter.Name,
 			&encounter.Description,
-			&CreationDate,
-			&AccessedDate,
+			&encounter.Metadata.CreationDate,
+			&encounter.Metadata.AccessedDate,
 			&encounter.Metadata.Campaign,
-			&Started,
+			&encounter.Metadata.Started,
 			&encounter.Metadata.Round,
 			&encounter.Metadata.Turn,
 		); err != nil {
 			logger.Error("Error Scanning Encounter Row: " + err.Error())
 			return encounters.EncounterOverview{}, err
 		}
-		encounter.Metadata.CreationDate = utils.ParseStringDate(CreationDate)
-		encounter.Metadata.AccessedDate = utils.ParseStringDate(AccessedDate)
-		encounter.Metadata.Started = Started == "X"
-	} else {
-		logger.Error("No Encounter found with id: " + strconv.Itoa(id))
-		return encounters.EncounterOverview{}, errors.New("No Encounter found with id: " + strconv.Itoa(id))
-	}
-
-	return encounter, nil
-}
-
-func ReadEncounterOverviewByName(name string, userid string) (encounters.EncounterOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID FROM Encounter WHERE Name = ? AND (Domain = 'Public' OR Domain = ?)", name, userid)
-	if err != nil {
-		logger.Error("Error querying database: " + err.Error())
-		return encounters.EncounterOverview{}, err
-	}
-	defer rows.Close()
-	var id int
-
-	if rows.Next() {
-		if err := rows.Scan(&id); err != nil {
-			logger.Error("Error Scanning Encounter Row: " + err.Error())
-			return encounters.EncounterOverview{}, err
-		}
-	} else {
-		logger.Error("No Encounter found with name: " + name)
-		return encounters.EncounterOverview{}, errors.New("No Encounter found with name: " + name)
-	}
-
-	return ReadEncounterOverviewByID(id, userid)
-}
-
-func ReadAllEncounterOverviews(userid string) ([]encounters.EncounterOverview, error) {
-	rows, err := asset_utils.QuerySQL(asset_utils.DB, "SELECT EncounterID, Name, Description, CreationDate, AccessedDate, Campaign, Started, Round, Turn FROM Encounter WHERE (Domain = 'Public' OR Domain = ?)", userid)
-	if err != nil {
+		return encounter, nil
+	})
+	if err != nil && err != pgx.ErrNoRows {
 		logger.Error("Error querying database: " + err.Error())
 		return nil, err
 	}
-	defer rows.Close()
 
-	var encs []encounters.EncounterOverview = make([]encounters.EncounterOverview, 0)
-
-	for rows.Next() {
-		var Name, Description, Campaign, CreationDate, AccessedDate, Started string
-		var Round, Turn, id int
-		if err := rows.Scan(
-			&id,
-			&Name,
-			&Description,
-			&CreationDate,
-			&AccessedDate,
-			&Campaign,
-			&Started,
-			&Round,
-			&Turn,
-		); err != nil {
-			logger.Error("Error Scanning Encounter Row: " + err.Error())
-			return nil, err
-		}
-		encounter := encounters.EncounterOverview{
-			ID:          id,
-			Name:        Name,
-			Description: Description,
-			Metadata: encounters.EncounterMetadata{
-				Campaign: Campaign,
-				Started:  Started == "X",
-				Round:    Round,
-				Turn:     Turn,
-			},
-		}
-		encounter.Metadata.CreationDate = utils.ParseStringDate(CreationDate)
-		encounter.Metadata.AccessedDate = utils.ParseStringDate(AccessedDate)
-		encs = append(encs, encounter)
-	}
-
-	return encs, nil
+	return rows, nil
 }
 
 func ReadEncounterByAccessType(accessType string, accessor string, userid string) (encounters.Encounter, error) {

@@ -1,0 +1,28 @@
+
+CREATE TABLE "public"."statblock" (
+  "statblockid" serial PRIMARY KEY,
+  "name" text NOT NULL,
+  "challengerating" decimal(5, 2) NOT NULL,
+  "proficiencybonus" smallint NOT NULL,
+  "source" text NOT NULL,
+  "size" text NOT NULL,
+  "type" text NOT NULL,
+  "alignment" text DEFAULT 'Any',
+  "armorclass" smallint NOT NULL,
+  "hitpoints1" integer NOT NULL,
+  "hitpoints2" text NOT NULL,
+  "walkspeed" integer NOT NULL DEFAULT '0',
+  "flyspeed" integer NOT NULL DEFAULT '0',
+  "climbspeed" integer NOT NULL DEFAULT '0',
+  "swimspeed" integer NOT NULL DEFAULT '0',
+  "burrowspeed" integer NOT NULL DEFAULT '0',
+  "reactioncount" smallint NOT NULL DEFAULT '1',
+  "armortype" text NOT NULL,
+  "recordtype" varchar(20) NOT NULL,
+  "user" text NOT NULL DEFAULT 'public',
+  "published" boolean NOT NULL DEFAULT 'false',
+  CONSTRAINT "constraint_1" FOREIGN KEY ("size") REFERENCES "public"."size" ("size") ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT "constraint_2" FOREIGN KEY ("type") REFERENCES "public"."entitytype" ("entitytype") ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT "constraint_3" FOREIGN KEY ("recordtype") REFERENCES "public"."recordtype" ("recordtype") ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT "constraint_4" FOREIGN KEY ("user") REFERENCES "public"."user" ("username") ON UPDATE CASCADE ON DELETE CASCADE
+)
