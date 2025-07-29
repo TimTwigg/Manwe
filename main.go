@@ -11,6 +11,8 @@ import (
 	routes "github.com/TimTwigg/Manwe/server"
 	io "github.com/TimTwigg/Manwe/utils/io"
 	logger "github.com/TimTwigg/Manwe/utils/log"
+	pgxpool "github.com/jackc/pgx/v5/pgxpool"
+	tracelog "github.com/jackc/pgx/v5/tracelog"
 	dashboard "github.com/supertokens/supertokens-golang/recipe/dashboard"
 	dashboardmodels "github.com/supertokens/supertokens-golang/recipe/dashboard/dashboardmodels"
 	emailpassword "github.com/supertokens/supertokens-golang/recipe/emailpassword"
@@ -30,6 +32,9 @@ func cleanup() {
 }
 
 func main() {
+	// ################################################################################
+	// Read environment variables
+	// ################################################################################
 	logger.Init("Reading environment variables...")
 	api_key, err := io.GetEnvVar("SUPERTOKENS_API_KEY")
 	if err != nil {
@@ -51,14 +56,41 @@ func main() {
 		return
 	}
 
+	// ################################################################################
+	// Initialize logger and database
+	// ################################################################################
 	logger.Init("Loading database...")
-	pool, err := asset_utils.GetDB()
+	logFilePath := logger.GetLogFilePath()
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+	defer logFile.Close()
+	tracer := &tracelog.TraceLog{
+		Logger:   &logger.DatabaseLogger{Logger: log.New(logFile, "PGX ", log.LstdFlags|log.Lshortfile)},
+		LogLevel: tracelog.LogLevelInfo, // Adjust level as needed
+	}
+	db_url, err := asset_utils.GetDBURL()
+	if err != nil || db_url == "" {
+		logger.Error("Error retrieving database URL: " + err.Error())
+		os.Exit(1)
+		return
+	}
+	config, err := pgxpool.ParseConfig(db_url)
+	if err != nil {
+		log.Fatalf("Failed to parse config: %v", err)
+	}
+	config.ConnConfig.Tracer = tracer
+	pool, err := asset_utils.GetDB(config)
 	if err != nil {
 		logger.Error("Error loading database: " + err.Error())
 		return
 	}
 	asset_utils.DBPool = pool
 
+	// ################################################################################
+	// Initialize SuperTokens
+	// ################################################################################
 	logger.Init("Initializing Authentication...")
 	apiBasePath := "/auth"
 	websiteBasePath := "/auth"
@@ -155,6 +187,9 @@ func main() {
 		panic(err.Error())
 	}
 
+	// ################################################################################
+	// Override Control-C exit
+	// ################################################################################
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -163,10 +198,12 @@ func main() {
 		os.Exit(0)
 	}()
 
-	logger.Init("Server started on port 8080")
-
+	// ################################################################################
+	// Start HTTP server
+	// ################################################################################
+	logger.Init("Server starting on port 8080")
 	if err := http.ListenAndServe("localhost:8080", routes.CORSMiddleware(session.VerifySession(nil, http.HandlerFunc(routes.HandleRoute)))); err != nil {
-		asset_utils.DBPool.Close()
+		cleanup()
 		log.Fatal(err)
 	}
 }

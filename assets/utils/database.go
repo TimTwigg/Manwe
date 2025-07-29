@@ -23,16 +23,8 @@ func GetDBURL() (string, error) {
 }
 
 // Open a connection to the database
-func GetDB() (*pgxpool.Pool, error) {
-	dburl, err := GetDBURL()
-	if err != nil {
-		return nil, err
-	}
-	if dburl == "" {
-		return nil, nil
-	}
-
-	pool, err := pgxpool.New(context.Background(), dburl)
+func GetDB(config *pgxpool.Config) (*pgxpool.Pool, error) {
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		return nil, err
 	}

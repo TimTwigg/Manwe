@@ -9,7 +9,14 @@
     - Difference type
     - Should be handled now, test
 - Finish reworking db CRUD operations to use pgx instead of pq
-    - EncounterReader and ConditionReader done
+    - Done:
+        - EncounterReader
+        - ConditionReader
+        - CampaignReader
+        - LairReader
+        - StatBlockReader
+- Optimize calls to database
+    - Analyze logs
 
 # Database Design
 

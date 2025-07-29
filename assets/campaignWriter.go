@@ -13,17 +13,11 @@ import (
 
 // Check if a campaign exists in the database for a given user
 func campaignExists(campaignName string, userid string) bool {
-	rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT COUNT(*) FROM public.campaigns WHERE campaign = $1 AND username = $2", campaignName, userid)
+	var count int
+	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT COUNT(*) FROM public.campaigns WHERE campaign = $1 AND username = $2", campaignName, userid).Scan(&count)
 	if err != nil {
 		logger.Error("Error checking Campaign: " + err.Error())
 		return false
-	}
-	var count int
-	if rows.Next() {
-		if err := rows.Scan(&count); err != nil {
-			logger.Error("Error scanning count from Campaign: " + err.Error())
-			return false
-		}
 	}
 	return count > 0
 }
@@ -33,14 +27,14 @@ func setCampaignEntities(entities []player.Player, campaignName string, userid s
 	_, err := asset_utils.DBPool.Exec(context.Background(), "DELETE FROM public.campaignentities WHERE campaign = $1 AND username = $2", campaignName, userid)
 	if err != nil {
 		logger.Error("Error deleting CampaignEntities: " + err.Error())
-		return err
+		return errors.Wrap(err, "Error deleting CampaignEntities")
 	}
 
 	for row, entity := range entities {
 		_, err := asset_utils.DBPool.Exec(context.Background(), "INSERT INTO public.campaignentities (campaign, username, rowid, statblockid, notes) VALUES ($1, $2, $3, $4, $5)", campaignName, userid, row+1, entity.StatBlock.ID, entity.Notes)
 		if err != nil {
 			logger.Error("Error inserting CampaignEntity: " + err.Error())
-			return err
+			return errors.Wrap(err, "Error inserting CampaignEntity")
 		}
 	}
 	return nil
@@ -51,20 +45,20 @@ func SetCampaign(campaignData campaign.Campaign, userid string) (campaign.Campai
 		_, err := asset_utils.DBPool.Exec(context.Background(), "UPDATE public.campaigns SET description = $1 AND lastModified = $2 WHERE campaign = $3 AND username = $4", campaignData.Description, utils.FormatDate(campaignData.LastModified), campaignData.Name, userid)
 		if err != nil {
 			logger.Error("Error updating Campaign: " + err.Error())
-			return campaign.Campaign{}, err
+			return campaign.Campaign{}, errors.Wrap(err, "Error updating Campaign")
 		}
 	} else {
 		_, err := asset_utils.DBPool.Exec(context.Background(), "INSERT INTO public.campaigns (campaign, username, description, creationDate, lastModified) VALUES ($1, $2, $3, $4, $5)", campaignData.Name, userid, campaignData.Description, utils.FormatDate(campaignData.CreationDate), utils.FormatDate(campaignData.LastModified))
 		if err != nil {
 			logger.Error("Error inserting Campaign: " + err.Error())
-			return campaign.Campaign{}, err
+			return campaign.Campaign{}, errors.Wrap(err, "Error inserting Campaign")
 		}
 	}
 
 	err := setCampaignEntities(campaignData.Players, campaignData.Name, userid)
 	if err != nil {
 		logger.Error("Error setting Campaign Entities: " + err.Error())
-		return campaign.Campaign{}, err
+		return campaign.Campaign{}, errors.Wrap(err, "Error setting Campaign Entities")
 	}
 
 	return campaignData, nil
@@ -79,7 +73,7 @@ func DeleteCampaign(campaignName string, userid string) error {
 	_, err := asset_utils.DBPool.Exec(context.Background(), "DELETE FROM public.campaigns WHERE campaign = $1 AND username = $2", campaignName, userid)
 	if err != nil {
 		logger.Error("Error deleting Campaign: " + err.Error())
-		return err
+		return errors.Wrap(err, "Error deleting Campaign")
 	}
 
 	return nil

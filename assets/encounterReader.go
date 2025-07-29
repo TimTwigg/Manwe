@@ -39,7 +39,7 @@ func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
 		return encounters.Encounter{}, errors.New("No Encounter found with id: " + strconv.Itoa(id))
 	} else if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return encounters.Encounter{}, err
+		return encounters.Encounter{}, errors.Wrap(err, "Error querying database for encounter")
 	}
 
 	entity_rows, _ := asset_utils.DBPool.Query(context.Background(), "SELECT rowid, statblockid, suffix, initiative, maxhitpoints, temphitpoints, currenthitpoints, armorclassbonus, concentration, notes, ishostile, encounterlocked, id FROM public.encounterentities WHERE encounterid = $1", id)
@@ -61,19 +61,19 @@ func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
 			&entity.ID,
 		); err != nil {
 			logger.Error("Error Scanning Encounter Entity Row: " + err.Error())
-			return entities.Entity{}, err
+			return entities.Entity{}, errors.Wrap(err, "Error scanning Encounter Entity Row")
 		}
 		statblock, err := ReadStatBlockByID(entity.DBID, userid, asset_utils.ANY)
 		if err != nil {
 			logger.Error("Error reading statblock: " + err.Error())
-			return entities.Entity{}, err
+			return entities.Entity{}, errors.Wrap(err, "Error reading StatBlock by ID")
 		}
 		entity.Displayable = statblock
 
 		conditions_rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT condition, duration FROM public.encentconditions WHERE encounterid = $1 and rowid = $2", id, entity.DBID)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
-			return entities.Entity{}, err
+			return entities.Entity{}, errors.Wrap(err, "Error querying database for conditions")
 		}
 		entity.Conditions = make(map[string]int, 0)
 		var condition string
@@ -88,7 +88,7 @@ func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
 	err = entity_rows.Err()
 	if err != nil && err != pgx.ErrNoRows {
 		logger.Error("Error querying database: " + err.Error())
-		return encounters.Encounter{}, err
+		return encounters.Encounter{}, errors.Wrap(err, "Error querying database for entities")
 	}
 	encounter.Entities = entities
 
@@ -112,7 +112,7 @@ func ReadEncounterByName(name string, userid string) (encounters.Encounter, erro
 		return encounters.Encounter{}, errors.New("No Encounter found with name: " + name)
 	} else if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return encounters.Encounter{}, err
+		return encounters.Encounter{}, errors.Wrap(err, "Error querying database for encounter")
 	}
 
 	return ReadEncounterByID(id, userid)
@@ -135,7 +135,7 @@ func ReadEncounterOverviewByID(id int, userid string) (encounters.EncounterOverv
 		return encounters.EncounterOverview{}, errors.New("No Encounter found with id: " + strconv.Itoa(id))
 	} else if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return encounters.EncounterOverview{}, err
+		return encounters.EncounterOverview{}, errors.Wrap(err, "Error querying database for encounter")
 	}
 	return encounter, nil
 }
@@ -148,7 +148,7 @@ func ReadEncounterOverviewByName(name string, userid string) (encounters.Encount
 		return encounters.EncounterOverview{}, errors.New("No Encounter found with name: " + name)
 	} else if err != nil {
 		logger.Error("Error querying database: " + err.Error())
-		return encounters.EncounterOverview{}, err
+		return encounters.EncounterOverview{}, errors.Wrap(err, "Error querying database for encounter")
 	}
 	return ReadEncounterOverviewByID(id, userid)
 }
@@ -169,13 +169,13 @@ func ReadAllEncounterOverviews(userid string) ([]encounters.EncounterOverview, e
 			&encounter.Metadata.Turn,
 		); err != nil {
 			logger.Error("Error Scanning Encounter Row: " + err.Error())
-			return encounters.EncounterOverview{}, err
+			return encounters.EncounterOverview{}, errors.Wrap(err, "Error scanning Encounter Row")
 		}
 		return encounter, nil
 	})
 	if err != nil && err != pgx.ErrNoRows {
 		logger.Error("Error querying database: " + err.Error())
-		return nil, err
+		return nil, errors.Wrap(err, "Error querying database for encounters")
 	}
 
 	return rows, nil
@@ -187,7 +187,7 @@ func ReadEncounterByAccessType(accessType string, accessor string, userid string
 		id, err := strconv.Atoi(accessor)
 		if err != nil {
 			logger.Error("Error converting id to int: " + err.Error())
-			return encounters.Encounter{}, err
+			return encounters.Encounter{}, errors.Wrap(err, "Error converting id to int")
 		}
 		return ReadEncounterByID(id, userid)
 	case "name":
@@ -204,7 +204,7 @@ func ReadEncounterOverviewByAccessType(accessType string, accessor string, useri
 		id, err := strconv.Atoi(accessor)
 		if err != nil {
 			logger.Error("Error converting id to int: " + err.Error())
-			return encounters.EncounterOverview{}, err
+			return encounters.EncounterOverview{}, errors.Wrap(err, "Error converting id to int")
 		}
 		return ReadEncounterOverviewByID(id, userid)
 	case "name":

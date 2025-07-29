@@ -9,41 +9,26 @@ import (
 	error_utils "github.com/TimTwigg/Manwe/utils/errors"
 	utils "github.com/TimTwigg/Manwe/utils/functions"
 	logger "github.com/TimTwigg/Manwe/utils/log"
+	errors "github.com/pkg/errors"
 )
 
 func encounterBelongsToUser(encounterID int, userid string) (bool, error) {
 	// Check that the encounter belongs to the user
-	rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT username FROM public.encounter WHERE encounterid = $1", encounterID)
+	var username string
+	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT username FROM public.encounter WHERE encounterid = $1", encounterID).Scan(&username)
 	if err != nil {
 		logger.Error("Error checking EncounterID: " + err.Error())
-		return false, err
+		return false, errors.Wrap(err, "Error checking EncounterID")
 	}
-	var domain string
-	if rows.Next() {
-		if err := rows.Scan(&domain); err != nil {
-			logger.Error("Error scanning domain from Encounter: " + err.Error())
-			return false, err
-		}
-	}
-	if domain != userid {
-		logger.Error("EncounterID does not belong to user")
-		return false, error_utils.AuthError{Message: "EncounterID does not belong to user"}
-	}
-	return true, nil
+	return username == userid, nil
 }
 
 func encounterExists(encounterID int) bool {
-	rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT COUNT(*) FROM public.encounter WHERE encounterid = $1", encounterID)
+	var count int
+	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT COUNT(*) FROM public.encounter WHERE encounterid = $1", encounterID).Scan(&count)
 	if err != nil {
 		logger.Error("Error checking EncounterID: " + err.Error())
 		return false
-	}
-	var count int
-	if rows.Next() {
-		if err := rows.Scan(&count); err != nil {
-			logger.Error("Error scanning count from Encounter: " + err.Error())
-			return false
-		}
 	}
 	return count > 0
 }
@@ -53,7 +38,7 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 	_, err := asset_utils.DBPool.Exec(context.Background(), "DELETE FROM public.encounterentities WHERE encounterid = $1", encounterID)
 	if err != nil {
 		logger.Error("Error deleting EncounterEntities: " + err.Error())
-		return err
+		return errors.Wrap(err, "Error deleting EncounterEntities")
 	}
 
 	// Insert each creature into the EncounterEntities table
@@ -78,7 +63,7 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 		)
 		if err != nil {
 			logger.Error("Error inserting EncounterEntity: " + err.Error())
-			return err
+			return errors.Wrap(err, "Error inserting EncounterEntity")
 		}
 
 		// Insert Conditions
@@ -93,7 +78,7 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 			)
 			if err != nil {
 				logger.Error("Error inserting EncounterEntityCondition: " + err.Error())
-				return err
+				return errors.Wrap(err, "Error inserting EncounterEntityCondition")
 			}
 		}
 	}
@@ -115,7 +100,7 @@ func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Enc
 			)
 			if err != nil {
 				logger.Error("Error inserting Campaign: " + err.Error())
-				return encounters.Encounter{}, err
+				return encounters.Encounter{}, errors.Wrap(err, "Error inserting Campaign")
 			}
 		}
 
@@ -138,18 +123,18 @@ func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Enc
 		).Scan(&encounter.ID)
 		if err != nil {
 			logger.Error("Error inserting Encounter: " + err.Error())
-			return encounters.Encounter{}, err
+			return encounters.Encounter{}, errors.Wrap(err, "Error inserting Encounter")
 		}
 	} else {
 		//  Check if the encounter belongs to the user
 		auth, err := encounterBelongsToUser(encounter.ID, userid)
 		if err != nil {
 			logger.Error("Error checking if encounter belongs to user: " + err.Error())
-			return encounters.Encounter{}, err
+			return encounters.Encounter{}, errors.Wrap(err, "Error checking if encounter belongs to user")
 		}
 		if !auth {
 			logger.Error("Encounter does not belong to user")
-			return encounters.Encounter{}, error_utils.AuthError{Message: "Encounter does not belong to user"}
+			return encounters.Encounter{}, errors.Wrap(error_utils.AuthError{Message: "Encounter does not belong to user"}, "Error checking encounter ownership")
 		}
 
 		//  Update the encounter
@@ -171,14 +156,14 @@ func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Enc
 		)
 		if err != nil {
 			logger.Error("Error updating Encounter: " + err.Error())
-			return encounters.Encounter{}, err
+			return encounters.Encounter{}, errors.Wrap(err, "Error updating Encounter")
 		}
 	}
 
 	err := SetEncounterEntities(encounter.Entities, encounter.ID)
 	if err != nil {
 		logger.Error("Error setting Encounter entity: " + err.Error())
-		return encounters.Encounter{}, err
+		return encounters.Encounter{}, errors.Wrap(err, "Error setting Encounter entity")
 	}
 	return encounter, nil
 }
@@ -187,17 +172,17 @@ func DeleteEncounter(encounterID int, userid string) error {
 	auth, err := encounterBelongsToUser(encounterID, userid)
 	if err != nil {
 		logger.Error("Error checking if encounter belongs to user: " + err.Error())
-		return err
+		return errors.Wrap(err, "Error checking if encounter belongs to user")
 	}
 	if !auth {
 		logger.Error("Encounter does not belong to user")
-		return error_utils.AuthError{Message: "Encounter does not belong to user"}
+		return errors.Wrap(error_utils.AuthError{Message: "Encounter does not belong to user"}, "Error checking encounter ownership")
 	}
 
 	_, err = asset_utils.DBPool.Exec(context.Background(), "DELETE FROM public.encounter WHERE encounterid = $1", encounterID)
 	if err != nil {
 		logger.Error("Error deleting Encounter: " + err.Error())
-		return err
+		return errors.Wrap(err, "Error deleting Encounter")
 	}
 
 	return nil
