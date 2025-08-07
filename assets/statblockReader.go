@@ -281,7 +281,7 @@ func ReadStatBlockByID(id int, userid string, restriction asset_utils.EntityType
 	// ################################################################################
 	// Read Lair
 	// ################################################################################
-	if block.Lair, err = ReadLairByEntityID(id); err != nil {
+	if block.Lair, err = ReadLairByEntityID(id, true); err != nil {
 		if !strings.HasPrefix(err.Error(), "No Lair found") {
 			logger.Error("Error reading lair: " + err.Error())
 			return stat_blocks.StatBlock{}, error_utils.ParseError{Message: err.Error()}

@@ -12,11 +12,13 @@ import (
 	errors "github.com/pkg/errors"
 )
 
-func ReadLairByEntityID(id int) (stat_blocks.Lair, error) {
+func ReadLairByEntityID(id int, ignoreNotFound bool) (stat_blocks.Lair, error) {
 	var lair stat_blocks.Lair
 	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT name, description, initiative FROM public.lair WHERE statblockid = $1", id).Scan(&lair.Name, &lair.Description, &lair.Initiative)
 	if pgx.ErrNoRows == err {
-		logger.Error("No Lair found with ID: " + strconv.Itoa(id))
+		if !ignoreNotFound {
+			logger.Error("No Lair found with ID: " + strconv.Itoa(id))
+		}
 		return stat_blocks.Lair{}, errors.New("No Lair found with ID: " + strconv.Itoa(id))
 	} else if err != nil {
 		logger.Error("Error querying database: " + err.Error())

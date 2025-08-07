@@ -45,9 +45,10 @@ func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
 	entity_rows, _ := asset_utils.DBPool.Query(context.Background(), "SELECT rowid, statblockid, suffix, initiative, maxhitpoints, temphitpoints, currenthitpoints, armorclassbonus, concentration, notes, ishostile, encounterlocked, id FROM public.encounterentities WHERE encounterid = $1", id)
 	entities, err := pgx.CollectRows(entity_rows, func(row pgx.CollectableRow) (entities.Entity, error) {
 		var entity entities.Entity
+		var rowid int
 		if err := row.Scan(
+			&rowid,
 			&entity.DBID,
-			&entity.ID,
 			&entity.Suffix,
 			&entity.Initiative,
 			&entity.MaxHitPoints,
@@ -70,7 +71,7 @@ func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
 		}
 		entity.Displayable = statblock
 
-		conditions_rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT condition, duration FROM public.encentconditions WHERE encounterid = $1 and rowid = $2", id, entity.DBID)
+		conditions_rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT condition, duration FROM public.encentconditions WHERE encounterid = $1 and rowid = $2", id, rowid)
 		if err != nil {
 			logger.Error("Error querying database: " + err.Error())
 			return entities.Entity{}, errors.Wrap(err, "Error querying database for conditions")
@@ -93,7 +94,7 @@ func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
 	encounter.Entities = entities
 
 	if encounter.HasLair && encounter.LairOwnerID > 0 {
-		if encounter.Lair, err = ReadLairByEntityID(encounter.LairOwnerID); err != nil {
+		if encounter.Lair, err = ReadLairByEntityID(encounter.LairOwnerID, true); err != nil {
 			if !strings.HasPrefix(err.Error(), "No Lair found") {
 				logger.Error("Error reading lair: " + err.Error())
 				return encounters.Encounter{}, error_utils.ParseError{Message: err.Error()}

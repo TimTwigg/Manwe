@@ -8,13 +8,6 @@
 - How to handle entities in encounter being non-statblocks (ie players or temp npcs)
     - Difference type
     - Should be handled now, test
-- Finish reworking db CRUD operations to use pgx instead of pq
-    - Done:
-        - EncounterReader
-        - ConditionReader
-        - CampaignReader
-        - LairReader
-        - StatBlockReader
 - Optimize calls to database
     - Analyze logs
 

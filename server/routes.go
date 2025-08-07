@@ -2,7 +2,9 @@ package routes
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	campaignroutes "github.com/TimTwigg/Manwe/server/routes/campaigns"
 	conditionroutes "github.com/TimTwigg/Manwe/server/routes/conditions"
@@ -36,14 +38,14 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	if userid == "" {
 		userid = "public"
 	}
-	// } else if r.Method != http.MethodOptions {
-	// 	_ = asset_utils.UpsertUser(asset_utils.DB, userid)
-	// }
 
 	route := strings.TrimPrefix(r.URL.Path, "/")
 	if strings.Contains(route, "/") && !strings.Contains(route, "all") {
 		route = strings.Split(route, "/")[0]
 	}
+
+	start := time.Now()
+	startCount := logger.DATABASE_LOGGER_COUNT
 
 	switch route {
 	case "metadata":
@@ -67,4 +69,6 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
+
+	logger.AppendToBLog("Handled route: " + r.URL.Path + " in " + strconv.FormatFloat(time.Since(start).Seconds(), 'f', 3, 64) + " seconds with " + strconv.Itoa(logger.DATABASE_LOGGER_COUNT-startCount) + " DB calls for user: " + userid)
 }

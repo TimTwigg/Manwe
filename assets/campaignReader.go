@@ -23,7 +23,7 @@ func ReadCampaign(campaignName string, userid string) (campaign.Campaign, error)
 		return campaign.Campaign{}, errors.Wrap(err, "Error querying database for campaign")
 	}
 
-	player_rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT statblockid, notes FROM public.campaignentities WHERE campaign = $1 AND username = $2", campaignName, userid)
+	player_rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT statblockid, coalesce(notes, '') FROM public.campaignentities WHERE campaign = $1 AND username = $2", campaignName, userid)
 	players, err := pgx.CollectRows(player_rows, func(row pgx.CollectableRow) (player.Player, error) {
 		var p player.Player
 		var statblockID int
@@ -31,7 +31,7 @@ func ReadCampaign(campaignName string, userid string) (campaign.Campaign, error)
 			logger.Error("Error scanning CampaignEntities row: " + err.Error())
 			return player.Player{}, errors.Wrap(err, "Error scanning CampaignEntities row")
 		}
-		statblock, err := ReadStatBlockByID(statblockID, userid, asset_utils.PLAYER)
+		statblock, err := ReadStatBlockByID(statblockID, userid, asset_utils.ANY)
 		if err != nil {
 			logger.Error("Error reading StatBlock by ID: " + err.Error())
 			return player.Player{}, errors.Wrap(err, "Error reading StatBlock by ID")
