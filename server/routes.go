@@ -10,7 +10,9 @@ import (
 	conditionroutes "github.com/TimTwigg/Manwe/server/routes/conditions"
 	encounterroutes "github.com/TimTwigg/Manwe/server/routes/encounters"
 	metadataroutes "github.com/TimTwigg/Manwe/server/routes/metadata"
+	playerroutes "github.com/TimTwigg/Manwe/server/routes/player"
 	statblockroutes "github.com/TimTwigg/Manwe/server/routes/statblocks"
+	typeroutes "github.com/TimTwigg/Manwe/server/routes/types"
 	server_utils "github.com/TimTwigg/Manwe/server/utils"
 	logger "github.com/TimTwigg/Manwe/utils/log"
 	supertokens "github.com/supertokens/supertokens-golang/supertokens"
@@ -52,6 +54,8 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 		metadataroutes.MetadataHandler(w, r, userid)
 	case "condition/all":
 		conditionroutes.AllConditionsHandler(w, r, userid)
+	case "type/all":
+		typeroutes.AllTypesHandler(w, r, userid)
 	case "statblock":
 		statblockroutes.StatBlockHandler(w, r, userid)
 	case "statblock/all":
@@ -64,6 +68,8 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 		campaignroutes.CampaignHandler(w, r, userid)
 	case "campaign/all":
 		campaignroutes.CampaignOverviewHandler(w, r, userid)
+	case "player":
+		playerroutes.PlayerHandler(w, r, userid)
 	default:
 		logger.Error("Unhandled route: " + r.URL.Path)
 		http.Error(w, "Not Found", http.StatusNotFound)

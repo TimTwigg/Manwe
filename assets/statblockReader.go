@@ -21,7 +21,7 @@ func ReadStatBlockByID(id int, userid string, restriction asset_utils.EntityType
 	// Read StatBlock information
 	// ################################################################################
 	var block stat_blocks.StatBlock
-	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT statblockid, name, challengerating, proficiencybonus, source, size, type, alignment, armorclass, hitpoints1, hitpoints2, walkspeed, flyspeed, climbspeed, swimspeed, burrowspeed, armortype FROM public.statblock WHERE statblockid = $1 AND (username = 'public' OR username = $2 OR published = true)"+asset_utils.StatBlockRestrictionClause(restriction, true), id, userid).Scan(
+	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT statblockid, name, challengerating, proficiencybonus, source, size, type, alignment, recordtype, armorclass, hitpoints1, hitpoints2, walkspeed, flyspeed, climbspeed, swimspeed, burrowspeed, armortype FROM public.statblock WHERE statblockid = $1 AND (username = 'public' OR username = $2 OR published = true)"+asset_utils.StatBlockRestrictionClause(restriction, true), id, userid).Scan(
 		&block.ID,
 		&block.Name,
 		&block.ChallengeRating,
@@ -30,6 +30,7 @@ func ReadStatBlockByID(id int, userid string, restriction asset_utils.EntityType
 		&block.Description.Size,
 		&block.Description.Type,
 		&block.Description.Alignment,
+		&block.Description.Category,
 		&block.Stats.ArmorClass,
 		&block.Stats.HitPoints.Average,
 		&block.Stats.HitPoints.Dice,
@@ -41,7 +42,9 @@ func ReadStatBlockByID(id int, userid string, restriction asset_utils.EntityType
 		&block.Details.ArmorType,
 	)
 	if pgx.ErrNoRows == err {
-		logger.Error("No Statblock found with ID: " + strconv.Itoa(id))
+		if restriction == asset_utils.ANY {
+			logger.Error("No Statblock found with ID: " + strconv.Itoa(id))
+		}
 		return stat_blocks.StatBlock{}, errors.New("No Statblock found with ID: " + strconv.Itoa(id))
 	} else if err != nil {
 		logger.Error("Error querying database: " + err.Error())

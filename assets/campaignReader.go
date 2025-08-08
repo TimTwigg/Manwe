@@ -6,6 +6,7 @@ import (
 	asset_utils "github.com/TimTwigg/Manwe/assets/utils"
 	campaign "github.com/TimTwigg/Manwe/types/campaign"
 	player "github.com/TimTwigg/Manwe/types/player"
+	utils "github.com/TimTwigg/Manwe/utils/functions"
 	logger "github.com/TimTwigg/Manwe/utils/log"
 	pgx "github.com/jackc/pgx/v5"
 	errors "github.com/pkg/errors"
@@ -23,18 +24,17 @@ func ReadCampaign(campaignName string, userid string) (campaign.Campaign, error)
 		return campaign.Campaign{}, errors.Wrap(err, "Error querying database for campaign")
 	}
 
-	player_rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT statblockid, coalesce(notes, '') FROM public.campaignentities WHERE campaign = $1 AND username = $2", campaignName, userid)
+	player_rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT statblockid, coalesce(notes, ''), rowid FROM public.campaignentities WHERE campaign = $1 AND username = $2", campaignName, userid)
 	players, err := pgx.CollectRows(player_rows, func(row pgx.CollectableRow) (player.Player, error) {
-		var p player.Player
+		var p player.Player = player.Player{Campaign: campaignName}
 		var statblockID int
-		if err := row.Scan(&statblockID, &p.Notes); err != nil {
+		if err := row.Scan(&statblockID, &p.Notes, &p.RowID); err != nil {
 			logger.Error("Error scanning CampaignEntities row: " + err.Error())
 			return player.Player{}, errors.Wrap(err, "Error scanning CampaignEntities row")
 		}
-		statblock, err := ReadStatBlockByID(statblockID, userid, asset_utils.ANY)
+		statblock, err := ReadStatBlockByID(statblockID, userid, asset_utils.CAMPAIGN)
 		if err != nil {
-			logger.Error("Error reading StatBlock by ID: " + err.Error())
-			return player.Player{}, errors.Wrap(err, "Error reading StatBlock by ID")
+			return player.Player{Notes: "ERROR"}, nil
 		}
 		p.StatBlock = statblock
 		return p, nil
@@ -44,7 +44,9 @@ func ReadCampaign(campaignName string, userid string) (campaign.Campaign, error)
 		logger.Error("Error reading players from database: " + err.Error())
 		return campaign.Campaign{}, errors.Wrap(err, "Error reading players from database")
 	}
-	camp.Players = players
+	camp.Players = utils.Filter(players, func(p player.Player) bool {
+		return p.Notes != "ERROR"
+	})
 	return camp, nil
 }
 

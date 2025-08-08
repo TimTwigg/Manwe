@@ -33,3 +33,12 @@ func FormatBool(value bool) string {
 func FormatDate(date time.Time) string {
 	return date.Format("2006-01-02")
 }
+
+func Filter[T any](ss []T, test func(T) bool) (ret []T) {
+	for _, s := range ss {
+		if test(s) {
+			ret = append(ret, s)
+		}
+	}
+	return
+}

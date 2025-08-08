@@ -7,6 +7,7 @@ const (
 	STATBLOCK
 	PLAYER
 	CUSTOM
+	CAMPAIGN
 )
 
 func StatBlockRestrictionClause(restriction EntityTypeRestriction, useAnd bool) string {
@@ -30,6 +31,12 @@ func StatBlockRestrictionClause(restriction EntityTypeRestriction, useAnd bool) 
 			return " AND recordtype = 'Custom'"
 		} else {
 			return " WHERE recordtype = 'Custom'"
+		}
+	case CAMPAIGN:
+		if useAnd {
+			return " AND recordtype in ('Player', 'Custom')"
+		} else {
+			return " WHERE recordtype in ('Player', 'Custom')"
 		}
 	default:
 		if useAnd {
