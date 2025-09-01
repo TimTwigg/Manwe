@@ -38,7 +38,7 @@ func GetDB(config *pgxpool.Config) (*pgxpool.Pool, error) {
 
 // Insert or update a user in the User table
 func UpsertUser(userID string) error {
-	_, err := DBPool.Exec(context.Background(), "INSERT INTO public.user (username) VALUES ($1) ON CONFLICT (username) DO NOTHING", userID)
+	_, err := DBPool.Exec(context.Background(), "INSERT INTO public.users (username) VALUES ($1) ON CONFLICT (username) DO NOTHING", userID)
 	if err != nil {
 		return err
 	}
