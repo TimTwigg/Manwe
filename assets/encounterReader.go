@@ -70,6 +70,7 @@ func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
 			return entities.Entity{}, errors.Wrap(err, "Error reading StatBlock by ID")
 		}
 		entity.Displayable = statblock
+		entity.Name = statblock.Name
 
 		conditions_rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT condition, duration FROM public.encentconditions WHERE encounterid = $1 and rowid = $2", id, rowid)
 		if err != nil {
