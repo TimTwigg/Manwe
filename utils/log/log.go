@@ -75,3 +75,11 @@ func DeleteRequest(message ...any) {
 	}
 	fmt.Println()
 }
+
+func Debug(message ...any) {
+	fmt.Printf("%s[DEBUG]%s", orange, reset)
+	for _, m := range message {
+		fmt.Printf(" %v", m)
+	}
+	fmt.Println()
+}

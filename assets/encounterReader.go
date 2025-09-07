@@ -71,6 +71,11 @@ func ReadEncounterByID(id int, userid string) (encounters.Encounter, error) {
 		}
 		entity.Displayable = statblock
 		entity.Name = statblock.Name
+		if statblock.Description.Category == "Statblock" {
+			entity.EntityType = entities.StatBlock
+		} else {
+			entity.EntityType = entities.Player
+		}
 
 		conditions_rows, err := asset_utils.DBPool.Query(context.Background(), "SELECT condition, duration FROM public.encentconditions WHERE encounterid = $1 and rowid = $2", id, rowid)
 		if err != nil {
