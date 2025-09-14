@@ -12,6 +12,7 @@ import (
 	metadataroutes "github.com/TimTwigg/Manwe/server/routes/metadata"
 	playerroutes "github.com/TimTwigg/Manwe/server/routes/player"
 	sizeroutes "github.com/TimTwigg/Manwe/server/routes/sizes"
+	sourceroutes "github.com/TimTwigg/Manwe/server/routes/sources"
 	statblockroutes "github.com/TimTwigg/Manwe/server/routes/statblocks"
 	typeroutes "github.com/TimTwigg/Manwe/server/routes/types"
 	server_utils "github.com/TimTwigg/Manwe/server/utils"
@@ -59,6 +60,8 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 		typeroutes.AllTypesHandler(w, r, userid)
 	case "size/all":
 		sizeroutes.AllSizesHandler(w, r, userid)
+	case "source/used/all":
+		sourceroutes.AllUsedSourcesHandler(w, r, userid)
 	case "statblock":
 		statblockroutes.StatBlockHandler(w, r, userid)
 	case "statblock/all":
