@@ -11,6 +11,7 @@ import (
 	encounterroutes "github.com/TimTwigg/Manwe/server/routes/encounters"
 	metadataroutes "github.com/TimTwigg/Manwe/server/routes/metadata"
 	playerroutes "github.com/TimTwigg/Manwe/server/routes/player"
+	sizeroutes "github.com/TimTwigg/Manwe/server/routes/sizes"
 	statblockroutes "github.com/TimTwigg/Manwe/server/routes/statblocks"
 	typeroutes "github.com/TimTwigg/Manwe/server/routes/types"
 	server_utils "github.com/TimTwigg/Manwe/server/utils"
@@ -56,6 +57,8 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 		conditionroutes.AllConditionsHandler(w, r, userid)
 	case "type/all":
 		typeroutes.AllTypesHandler(w, r, userid)
+	case "size/all":
+		sizeroutes.AllSizesHandler(w, r, userid)
 	case "statblock":
 		statblockroutes.StatBlockHandler(w, r, userid)
 	case "statblock/all":
