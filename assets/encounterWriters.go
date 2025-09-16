@@ -88,11 +88,11 @@ func SetEncounterEntities(creatures []entities.Entity, encounterID int) error {
 func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Encounter, error) {
 	if encounter.ID == 0 || !encounterExists(encounter.ID) {
 		//  If the campaign does not exist, create it
-		if !campaignExists(encounter.Metadata.Campaign, userid) {
+		if !campaignExists(encounter.Metadata.CampaignID, userid) {
 			_, err := asset_utils.DBPool.Exec(
 				context.Background(),
-				"INSERT INTO public.campaign (campaign, username, description, creationdate, lastmodified) VALUES ($1, $2, $3, $4, $5)",
-				encounter.Metadata.Campaign,
+				"INSERT INTO public.campaign (id, username, description, creationdate, lastmodified) VALUES ($1, $2, $3, $4, $5)",
+				encounter.Metadata.CampaignID,
 				userid,
 				"Auto-generated campaign for encounter",
 				utils.FormatDate(encounter.Metadata.AccessedDate),
@@ -112,7 +112,7 @@ func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Enc
 			encounter.Description,
 			utils.FormatDate(encounter.Metadata.CreationDate),
 			utils.FormatDate(encounter.Metadata.AccessedDate),
-			encounter.Metadata.Campaign,
+			encounter.Metadata.CampaignID,
 			encounter.Metadata.Started,
 			encounter.Metadata.Round,
 			encounter.Metadata.Turn,
@@ -145,7 +145,7 @@ func SetEncounter(encounter encounters.Encounter, userid string) (encounters.Enc
 			encounter.Description,
 			utils.FormatDate(encounter.Metadata.CreationDate),
 			utils.FormatDate(encounter.Metadata.AccessedDate),
-			encounter.Metadata.Campaign,
+			encounter.Metadata.CampaignID,
 			encounter.Metadata.Started,
 			encounter.Metadata.Round,
 			encounter.Metadata.Turn,

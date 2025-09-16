@@ -1,10 +1,11 @@
-
-CREATE TABLE "public"."campaign" (
-  "campaign" varchar(20),
-  "user" text,
-  "description" text,
-  "creationdate" date NOT NULL,
-  "lastmodified" date NOT NULL,
-  CONSTRAINT "campaign_p_key" PRIMARY KEY ("campaign", "user"),
-  CONSTRAINT "constraint_2" FOREIGN KEY ("user") REFERENCES "public"."user" ("username") ON UPDATE CASCADE ON DELETE CASCADE
-)
+create table
+    "public"."campaign" (
+        "id" serial,
+        "username" text,
+        "name" text,
+        "description" text,
+        "creationdate" date not null,
+        "lastmodified" date not null,
+        constraint "campaign_p_key" primary KEY ("id", "username"),
+        constraint "username_foreign_key" foreign KEY ("username") references "public"."users" ("username") on update CASCADE on delete CASCADE
+    )

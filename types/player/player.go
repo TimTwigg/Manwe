@@ -5,17 +5,17 @@ import (
 )
 
 type Player struct {
-	Campaign  string
-	StatBlock stat_blocks.StatBlock
-	Notes     string
-	RowID     int
+	CampaignID int
+	StatBlock  stat_blocks.StatBlock
+	Notes      string
+	RowID      int
 }
 
 func (p Player) Dict() map[string]interface{} {
 	return map[string]interface{}{
-		"Campaign":  p.Campaign,
-		"StatBlock": p.StatBlock.Dict(),
-		"Notes":     p.Notes,
-		"RowID":     p.RowID,
+		"CampaignID": p.CampaignID,
+		"StatBlock":  p.StatBlock.Dict(),
+		"Notes":      p.Notes,
+		"RowID":      p.RowID,
 	}
 }

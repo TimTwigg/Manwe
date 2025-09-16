@@ -11,7 +11,7 @@ import (
 
 func playerExists(plyr player.Player, userid string) bool {
 	var count int
-	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT COUNT(*) FROM public.campaignentities WHERE campaign = $1 AND username = $2 AND rowid = $3", plyr.Campaign, userid, plyr.RowID).Scan(&count)
+	err := asset_utils.DBPool.QueryRow(context.Background(), "SELECT COUNT(*) FROM public.campaignentities WHERE id = $1 AND username = $2 AND rowid = $3", plyr.CampaignID, userid, plyr.RowID).Scan(&count)
 	if err != nil {
 		logger.Error("Error checking Player: " + err.Error())
 		return false
@@ -20,11 +20,11 @@ func playerExists(plyr player.Player, userid string) bool {
 }
 
 func SetPlayer(plyr player.Player, userid string) (player.Player, error) {
-	if plyr.Campaign == "" {
+	if plyr.CampaignID == 0 {
 		logger.Error("Campaign is required")
 		return player.Player{}, errors.New("Campaign is required")
 	}
-	if !campaignExists(plyr.Campaign, userid) {
+	if !campaignExists(plyr.CampaignID, userid) {
 		return player.Player{}, errors.New("Campaign does not exist")
 	}
 
@@ -38,8 +38,8 @@ func SetPlayer(plyr player.Player, userid string) (player.Player, error) {
 		// Create New Player
 		err := asset_utils.DBPool.QueryRow(
 			context.Background(),
-			"INSERT INTO public.campaignentities (campaign, username, statblockid, notes) VALUES ($1, $2, $3, $4) RETURNING rowid",
-			plyr.Campaign,
+			"INSERT INTO public.campaignentities (id, username, statblockid, notes) VALUES ($1, $2, $3, $4) RETURNING rowid",
+			plyr.CampaignID,
 			userid,
 			plyr.StatBlock.ID,
 			plyr.Notes,
@@ -52,10 +52,10 @@ func SetPlayer(plyr player.Player, userid string) (player.Player, error) {
 		// Update Existing Player
 		_, err := asset_utils.DBPool.Exec(
 			context.Background(),
-			"UPDATE public.campaignentities SET statblockid = $1, notes = $2 WHERE campaign = $3 AND username = $4 AND rowid = $5",
+			"UPDATE public.campaignentities SET statblockid = $1, notes = $2 WHERE id = $3 AND username = $4 AND rowid = $5",
 			plyr.StatBlock.ID,
 			plyr.Notes,
-			plyr.Campaign,
+			plyr.CampaignID,
 			userid,
 			plyr.RowID,
 		)
@@ -68,8 +68,8 @@ func SetPlayer(plyr player.Player, userid string) (player.Player, error) {
 	return plyr, nil
 }
 
-func DeletePlayer(campaign string, rowID int, userid string) error {
-	_, err := asset_utils.DBPool.Exec(context.Background(), "DELETE FROM public.campaignentities WHERE campaign = $1 AND username = $2 AND rowid = $3", campaign, userid, rowID)
+func DeletePlayer(campaignID int, rowID int, userid string) error {
+	_, err := asset_utils.DBPool.Exec(context.Background(), "DELETE FROM public.campaignentities WHERE id = $1 AND username = $2 AND rowid = $3", campaignID, userid, rowID)
 	if err != nil {
 		logger.Error("Error deleting Player: " + err.Error())
 		return errors.Wrap(err, "Error deleting Player")

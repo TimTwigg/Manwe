@@ -1,11 +1,12 @@
-CREATE TABLE "public"."campaignentities" (
-  "campaign" varchar(20),
-  "user" text,
-  "rowid" serial,
-  "statblockid" integer NOT NULL,
-  "notes" text,
-  CONSTRAINT "campaignentities_p_key" PRIMARY KEY ("campaign", "user", "rowid"),
-  CONSTRAINT "constraint_2" FOREIGN KEY ("campaign", "user") REFERENCES "public"."campaign" ("campaign", "user") ON UPDATE CASCADE ON DELETE CASCADE,
-  CONSTRAINT "constraint_3" FOREIGN KEY ("user") REFERENCES "public"."user" ("username") ON UPDATE CASCADE ON DELETE CASCADE,
-  CONSTRAINT "constraint_4" FOREIGN KEY ("statblockid") REFERENCES "public"."statblock" ("statblockid") ON UPDATE CASCADE ON DELETE CASCADE
-)
+create table
+    "public"."campaignentities" (
+        "id" integer,
+        "username" text,
+        "rowid" serial,
+        "statblockid" integer not null,
+        "notes" text,
+        constraint "campaignentities_p_key" primary KEY ("id", "username", "rowid"),
+        constraint "campaign_foreign_key" foreign KEY ("id", "username") references "public"."campaign" ("id", "username") on update CASCADE on delete CASCADE,
+        constraint "username_foreign_key" foreign KEY ("username") references "public"."users" ("username") on update CASCADE on delete CASCADE,
+        constraint "statblockid_foreign_key" foreign KEY ("statblockid") references "public"."statblock" ("statblockid") on update CASCADE on delete CASCADE
+    )

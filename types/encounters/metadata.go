@@ -5,7 +5,7 @@ import "time"
 type EncounterMetadata struct {
 	CreationDate time.Time
 	AccessedDate time.Time
-	Campaign     string
+	CampaignID   int
 	Started      bool
 	Round        int
 	Turn         int
@@ -15,7 +15,7 @@ func (m EncounterMetadata) Dict() map[string]any {
 	return map[string]any{
 		"CreationDate": m.CreationDate,
 		"AccessedDate": m.AccessedDate,
-		"Campaign":     m.Campaign,
+		"CampaignID":   m.CampaignID,
 		"Started":      m.Started,
 		"Round":        m.Round,
 		"Turn":         m.Turn,

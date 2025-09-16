@@ -80,7 +80,12 @@ func PlayerHandler(w http.ResponseWriter, r *http.Request, userid string) {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
-		campaign := pieces[0]
+		campaign, err := strconv.Atoi(pieces[0])
+		if err != nil {
+			logger.Error("PlayerHandler: Failed to parse campaignID: " + err.Error())
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
 		rowID, err := strconv.Atoi(pieces[1])
 		if err != nil {
 			logger.Error("PlayerHandler: Failed to parse playerID: " + err.Error())
@@ -88,7 +93,7 @@ func PlayerHandler(w http.ResponseWriter, r *http.Request, userid string) {
 			return
 		}
 
-		logger.DeleteRequest("Deleting Player with rowID: " + strconv.Itoa(rowID) + " from campaign: " + campaign)
+		logger.DeleteRequest("Deleting Player with rowID: " + strconv.Itoa(rowID) + " from campaign: " + strconv.Itoa(campaign))
 
 		err = assets.DeletePlayer(campaign, rowID, userid)
 		if err != nil {

@@ -7,6 +7,7 @@ import (
 )
 
 type Campaign struct {
+	ID           int
 	Name         string
 	Description  string
 	CreationDate time.Time
@@ -15,6 +16,7 @@ type Campaign struct {
 }
 
 type CampaignOverview struct {
+	ID           int
 	Name         string
 	Description  string
 	CreationDate time.Time
